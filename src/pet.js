@@ -28,6 +28,15 @@ export function createPet() {
   };
 }
 
+// Critical threshold: stat is "bad" when:
+//   - hunger >= CRIT (very hungry)
+//   - fatigue >= CRIT (very tired)
+//   - happiness <= 100 - CRIT (very sad)
+const CRIT = 70;
+
+// Health damage per second when ANY stat is in critical range
+const HEALTH_DAMAGE_PER_SEC = 2;
+
 export function tick(pet, deltaSec) {
   if (!pet.alive) return pet;
 
@@ -36,10 +45,17 @@ export function tick(pet, deltaSec) {
   pet.stats.happiness = clamp(pet.stats.happiness - DECAY.happiness * deltaSec, 0, 100);
   pet.age             = pet.age + DECAY.age * deltaSec;
 
-  // Health drops if hunger, fatigue or happiness are critical
-  const critical = (pet.stats.hunger >= 90) || (pet.stats.fatigue >= 90) || (pet.stats.happiness <= 10);
-  if (critical) {
-    pet.stats.health = clamp(pet.stats.health - 5 * deltaSec, 0, 100);
+  // Health drops if any stat is critical
+  const hungerCrit    = pet.stats.hunger    >= CRIT;
+  const fatigueCrit   = pet.stats.fatigue   >= CRIT;
+  const happinessCrit = pet.stats.happiness <= (100 - CRIT);
+  const anyCrit       = hungerCrit || fatigueCrit || happinessCrit;
+
+  if (anyCrit) {
+    pet.stats.health = clamp(pet.stats.health - HEALTH_DAMAGE_PER_SEC * deltaSec, 0, 100);
+  } else if (pet.stats.health < 100) {
+    // Small passive heal when all stats OK
+    pet.stats.health = clamp(pet.stats.health + 1 * deltaSec, 0, 100);
   }
 
   // Death checks
