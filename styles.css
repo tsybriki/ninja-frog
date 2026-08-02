@@ -1,0 +1,187 @@
+/* Bob the Shrimp — v1 styles */
+
+:root {
+  --bg-deep: #0a2540;
+  --bg-mid: #1864ab;
+  --bg-light: #4dabf7;
+  --panel: rgba(255, 255, 255, 0.92);
+  --text: #1a1a1a;
+  --health: #fa5252;
+  --hunger: #fd7e14;
+  --fatigue: #7950f2;
+  --happiness: #fab005;
+  --good: #40c057;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 60%, var(--bg-light) 100%);
+  min-height: 100vh;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+#app {
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+}
+
+.age {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.bob-container {
+  text-align: center;
+  background: linear-gradient(180deg, #d0ebff 0%, #74c0fc 100%);
+  border-radius: 12px;
+  padding: 24px 16px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bob-container::before,
+.bob-container::after {
+  content: "○";
+  position: absolute;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  animation: bubble 6s linear infinite;
+}
+
+.bob-container::before { left: 20%; animation-delay: 0s; }
+.bob-container::after  { left: 70%; animation-delay: 3s; }
+
+@keyframes bubble {
+  0%   { bottom: -20px; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { bottom: 110%; opacity: 0; }
+}
+
+.bob-sprite {
+  font-size: 80px;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+
+.bob-sprite.happy { animation: wiggle 1s ease-in-out infinite; }
+.bob-sprite.sad   { transform: rotate(180deg); }
+.bob-sprite.dead  { transform: rotate(90deg); filter: grayscale(1); }
+
+@keyframes wiggle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-8px) rotate(5deg); }
+}
+
+.status {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: #495057;
+  font-style: italic;
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stat label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.bar {
+  background: #e9ecef;
+  border-radius: 8px;
+  height: 14px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 8px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.fill.health    { background: var(--health); }
+.fill.hunger    { background: var(--hunger); }
+.fill.fatigue   { background: var(--fatigue); }
+.fill.happiness { background: var(--happiness); }
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+button {
+  padding: 12px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  background: var(--good);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
+}
+
+button:hover  { background: #2f9e44; }
+button:active { transform: scale(0.96); }
+button:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.game-over {
+  text-align: center;
+  padding: 20px;
+  background: #fff3bf;
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.game-over h2 {
+  margin: 0 0 8px;
+  color: #c92a2a;
+}
+
+.game-over.hidden {
+  display: none;
+}
+
+#btn-new-game {
+  background: #c92a2a;
+  margin-top: 12px;
+}
+#btn-new-game:hover { background: #a61e1e; }
