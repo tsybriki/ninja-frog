@@ -11,6 +11,29 @@
   --fatigue: #7950f2;
   --happiness: #fab005;
   --good: #40c057;
+  /* Floating sickness indicators */
+  --sickness-color: #e03131;
+}
+
+/* --- Random sickness indicators --- */
+.sickness-indicator {
+  pointer-events: none;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--sickness-color);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(224,49,49,0.4);
+  animation: sickness-float 1.2s ease-out forwards;
+  z-index: 10;
+}
+
+.sickness-hunger    { color: var(--hunger); text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(253,126,20,0.4); }
+.sickness-happiness { color: var(--happiness); text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(250,176,5,0.4); }
+.sickness-health    { color: var(--health); text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(250,82,82,0.5); }
+
+@keyframes sickness-float {
+  0%   { opacity: 0;   transform: translate(-50%, 10px) scale(0.6); }
+  20%  { opacity: 1;   transform: translate(-50%, -10px) scale(1.15); }
+  100% { opacity: 0;   transform: translate(-50%, -60px) scale(1); }
 }
 
 * { box-sizing: border-box; }

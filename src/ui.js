@@ -1,5 +1,35 @@
 // src/ui.js — render Bob and handle button clicks
 
+/**
+ * Show a floating "-N" over the pet sprite.
+ * @param {string} stat 'hunger' | 'happiness' | 'health'
+ * @param {number} amount positive number (we render the minus sign ourselves)
+ */
+export function showSicknessIndicator(stat, amount) {
+  const sprite = document.getElementById('bob-sprite');
+  if (!sprite) return;
+
+  const indicator = document.createElement('div');
+  indicator.className = `sickness-indicator sickness-${stat}`;
+  indicator.textContent = `-${amount}`;
+
+  // Position relative to the sprite container. Use absolute coords.
+  indicator.style.position = 'absolute';
+  indicator.style.left = '50%';
+  indicator.style.top = '0';
+  indicator.style.transform = 'translate(-50%, -10px)';
+
+  // Ensure the parent is positioned so absolute children anchor to it.
+  const parent = sprite.parentElement;
+  if (parent && getComputedStyle(parent).position === 'static') {
+    parent.style.position = 'relative';
+  }
+  parent.appendChild(indicator);
+
+  // Remove after the animation finishes (1.2s in CSS).
+  setTimeout(() => indicator.remove(), 1300);
+}
+
 export function render(pet) {
   document.getElementById('age').textContent = Math.floor(pet.stats?.health !== undefined ? pet.age : pet.age);
 
