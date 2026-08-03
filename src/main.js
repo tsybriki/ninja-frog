@@ -29,6 +29,18 @@ setInterval(() => savePet(pet), 5000);
 // Save on tab close
 window.addEventListener('beforeunload', () => savePet(pet));
 
+// Slow passive HP drain: 1 HP every 0.6 real minutes (= 36 seconds) while Bob is alive.
+setInterval(() => {
+  if (!pet.alive) return;
+  pet.stats.health = Math.max(0, pet.stats.health - 1);
+  if (pet.stats.health <= 0) {
+    pet.alive = false;
+    pet.causeOfDeath = 'time';
+  }
+  savePet(pet);
+  render(pet);
+}, 36 * 1000);
+
 // Open the "Catch the Flies" minigame.
 // Per Oleg's request: 1 game-hour (= 2 real minutes), no reward yet,
 // but Bob loses 1 HP every 1.6s while the minigame is running.
