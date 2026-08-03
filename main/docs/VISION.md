@@ -1,0 +1,71 @@
+# Game Vision: Bob the Shrimp
+
+> A virtual pet game where you take care of a shrimp named Bob. Single-player, browser-based, hosted on GitHub Pages.
+
+## Concept
+
+A tamagotchi-style virtual pet: the player keeps a shrimp named **Bob** alive by managing his needs until he dies of old age at 100 in-game hours.
+
+## Character
+
+- **Name:** Bob
+- **Type:** Shrimp
+- **Visual style:** TBD (pixel art / hand-drawn / generated)
+- **Background:** Aquarium (blue gradient + bubbles)
+
+## Stats (4, each 0–100)
+
+| Stat      | Meaning                                |
+|-----------|----------------------------------------|
+| Health    | Drops if hunger/fatigue/happiness is critical |
+| Hunger    | Rises over time; feed to lower         |
+| Fatigue   | Rises over time; sleep to lower        |
+| Happiness | Drops over time; play to raise         |
+
+## Player Actions (3 buttons)
+
+- 🍤 **Feed** — lowers hunger
+- 😴 **Sleep** — lowers fatigue
+- 🎾 **Play** — raises happiness
+
+## Lifecycle
+
+- **Start:** Bob is young, age = 0
+- **Aging:** +1 game-hour = +1 age (1 real minute = 1 game hour? TBD — see decay rates)
+- **Death:** at age = 100 game-hours, Bob dies of old age
+- **Game Over:** "Bob lived a full life" + "New Game" button (fresh start)
+
+## Decay Rates (in real time)
+
+Implemented via `Date.now()` deltas, not `setInterval` ticks — so it works correctly when the tab is backgrounded.
+
+**Single mode (accelerated):** full lifecycle = 4 real-time minutes.
+
+- `tickSpeed = 25` (1 real second = 25 game-minutes)
+- **Hunger:** +25/60 per real second (0 → 100 in 4 min)
+- **Fatigue:** +25/60 per real second (0 → 100 in 4 min)
+- **Happiness:** −12.5/60 per real second (0 → 100 in 8 min if ignored)
+- **Age:** +25/60 per real second (1 game-hour per 2.4 real seconds; 0 → 100 in 4 min)
+- **Health:** drops if any other stat is critical (<10)
+
+## Visual Direction
+
+- Bob sprite: shrimp character, friendly
+- Background: aquarium (gradient blue, animated bubbles)
+- UI: progress bars for each stat
+- Age counter (in game-hours)
+
+## Tech Constraints
+
+- **Pure client-side JavaScript** — no backend, no serverless functions
+- **GitHub Pages** hosting (static)
+- **localStorage** for save/load
+- **No build step** initially (vanilla JS in `<script>` tags, ES modules)
+
+## Out of Scope (for v1)
+
+- Multiplayer
+- Account system / cloud save
+- Sound / music
+- Multiple pet types
+- Mobile-optimized (desktop-first; should still work on mobile)
