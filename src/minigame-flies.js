@@ -10,7 +10,7 @@ const SPAWN_MIN_MS = 400;
 const SPAWN_MAX_MS = 900;
 const CATCH_RADIUS_PX = 60;     // generous tap area
 
-export function createFliesGame(onScoreChange) {
+export function createFliesGame(onScoreChange, onDamage) {
   const container = makeContainer();
   let score = 0;
   let running = false;
@@ -19,6 +19,8 @@ export function createFliesGame(onScoreChange) {
   let flies = []; // {el, x, y, born, dx, dy}
   let raf = null;
   let bobEl = null;
+
+  let damageTimer = null;
 
   const scoreEl = document.createElement('div');
   scoreEl.className = 'minigame-score';
@@ -140,11 +142,16 @@ export function createFliesGame(onScoreChange) {
       lastFrame = 0;
       scheduleNextSpawn();
       raf = requestAnimationFrame(animate);
+      // Drain 1 HP from Bob every 1.6 seconds while the minigame is running.
+      damageTimer = setInterval(() => {
+        if (running && onDamage) onDamage(1);
+      }, 1600);
       return 0;
     },
     stop: () => {
       running = false;
       if (spawnTimer) { clearTimeout(spawnTimer); spawnTimer = null; }
+      if (damageTimer) { clearInterval(damageTimer); damageTimer = null; }
       if (raf) { cancelAnimationFrame(raf); raf = null; }
       flies.forEach(f => f.el.remove());
       flies = [];
