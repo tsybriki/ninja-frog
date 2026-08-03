@@ -19,13 +19,25 @@ export function createPet() {
     age: 0,
     stats: {
       health: 100,
-      hunger: 0,
-      fatigue: 0,
+      // Random start so every run begins with a slightly different
+      // "already in progress" feel: Bob shows up hungry and a bit tired.
+      //   hunger:  [60..80] (int, inclusive of both ends)
+      //   fatigue: [30..70] (int, inclusive of both ends)
+      hunger:    randInt(60, 81),
+      fatigue:   randInt(30, 71),
       happiness: 100,
     },
     alive: true,
     causeOfDeath: null,
   };
+}
+
+// Random integer in [min, max) when called as randInt(60, 80) -> 60..79.
+// Use min/max where max is one-past-the-end for easy inclusive ranges:
+//   randInt(60, 81)  -> 60..80
+//   randInt(30, 71)  -> 30..70
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
 }
 
 // Critical threshold: stat is "bad" when:
