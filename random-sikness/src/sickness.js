@@ -1,16 +1,22 @@
 // src/sickness.js — random misfortune events
 
-// Fixed-amount event: every 15s one of three things happens to Bob:
-//   - health  -5
+// Every 15s one of three things happens to Bob:
+//   - health  -5   (old-age accelerated)
 //   - hunger  +5
 //   - fatigue +5
+//
+// Phone vibrates with a type-specific pattern (short / double / triple)
+// and a floating "-5" / "+5" indicator pops above Bob so the player
+// sees what just happened.
 
 // Tunables
 export const SICKNESS_INTERVAL_MS = 15_000;
 export const SICKNESS_AMOUNT = 5;
 export const SICKNESS_IMMUNITY_MS = 4_000;
 
-// Vibration patterns per event type
+// How many game-hours one health-event steals from Bob's remaining life
+export const SICKNESS_HEALTH_AGE_PENALTY_HOURS = 5;
+
 const VIBRATION_PATTERNS = {
   health:  100,
   hunger:  [80, 60, 80],
@@ -34,14 +40,11 @@ function vibrate(pattern) {
  * Start the sickness loop.
  * @param {object} pet
  * @param {(pet: object, event: {type:string, amount:number}) => void} onEvent
- * @param {(remainingMs: number) => void} [onTick] optional: fires every second
- *        with the ms remaining until the next event (useful for debug HUD)
+ * @returns {{ stop: () => void }}
  */
-export function startSicknessLoop(pet, onEvent, onTick) {
+export function startSicknessLoop(pet, onEvent) {
   let timerId = null;
   let immuneUntil = 0;
-  let nextFireAt = Date.now() + SICKNESS_INTERVAL_MS;
-  let countdownTimerId = null;
 
   function fire() {
     if (Date.now() < immuneUntil) {
@@ -57,7 +60,9 @@ export function startSicknessLoop(pet, onEvent, onTick) {
     } else if (type === 'fatigue') {
       pet.stats.fatigue = Math.min(100, pet.stats.fatigue + amount);
     } else if (type === 'health') {
-      pet.stats.health = Math.max(0, pet.stats.health - amount);
+      // "health" now means remaining-life — accelerate aging so the
+      // health bar (bound to age) drops by a small slice.
+      pet.age = Math.min(100, pet.age + SICKNESS_HEALTH_AGE_PENALTY_HOURS);
     }
 
     vibrate(VIBRATION_PATTERNS[type]);
@@ -71,26 +76,15 @@ export function startSicknessLoop(pet, onEvent, onTick) {
   }
 
   function scheduleNext() {
-    nextFireAt = Date.now() + SICKNESS_INTERVAL_MS;
     timerId = setTimeout(fire, SICKNESS_INTERVAL_MS);
   }
 
   scheduleNext();
 
-  // 1Hz countdown so the UI can show "next event in Ns"
-  if (typeof onTick === 'function') {
-    countdownTimerId = setInterval(() => {
-      const remaining = Math.max(0, nextFireAt - Date.now());
-      onTick(remaining);
-    }, 1000);
-  }
-
   return {
     stop() {
       if (timerId !== null) clearTimeout(timerId);
-      if (countdownTimerId !== null) clearInterval(countdownTimerId);
       timerId = null;
-      countdownTimerId = null;
     },
   };
 }

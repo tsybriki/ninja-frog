@@ -32,10 +32,10 @@ export function createPet() {
 //   - hunger >= CRIT (very hungry)
 //   - fatigue >= CRIT (very tired)
 //   - happiness <= 100 - CRIT (very sad)
+//
+// (Kept for status text / sprite mood in ui.js — no longer damages health,
+// because the health bar is now bound to remaining life = MAX_AGE - age.)
 const CRIT = 70;
-
-// Health damage per second when ANY stat is in critical range
-const HEALTH_DAMAGE_PER_SEC = 2;
 
 export function tick(pet, deltaSec) {
   if (!pet.alive) return pet;
@@ -45,26 +45,10 @@ export function tick(pet, deltaSec) {
   pet.stats.happiness = clamp(pet.stats.happiness - DECAY.happiness * deltaSec, 0, 100);
   pet.age             = pet.age + DECAY.age * deltaSec;
 
-  // Health drops if any stat is critical
-  const hungerCrit    = pet.stats.hunger    >= CRIT;
-  const fatigueCrit   = pet.stats.fatigue   >= CRIT;
-  const happinessCrit = pet.stats.happiness <= (100 - CRIT);
-  const anyCrit       = hungerCrit || fatigueCrit || happinessCrit;
-
-  if (anyCrit) {
-    pet.stats.health = clamp(pet.stats.health - HEALTH_DAMAGE_PER_SEC * deltaSec, 0, 100);
-  } else if (pet.stats.health < 100) {
-    // Small passive heal when all stats OK
-    pet.stats.health = clamp(pet.stats.health + 1 * deltaSec, 0, 100);
-  }
-
   // Death checks
   if (pet.age >= MAX_AGE) {
     pet.alive = false;
     pet.causeOfDeath = 'old-age';
-  } else if (pet.stats.health <= 0) {
-    pet.alive = false;
-    pet.causeOfDeath = 'sickness';
   }
 
   return pet;
@@ -74,17 +58,17 @@ export function tick(pet, deltaSec) {
 
 // Threshold: if hunger is already below this when we feed, it's overfeeding
 const OVERFEED_HUNGER_THRESHOLD = 5;
-// Damage taken when overfeeding
-const OVERFEED_DAMAGE = 5;
+// Game-hours stolen from Bob's life on overfeed
+const OVERFEED_AGE_PENALTY = 5;
 
 export function feed(pet) {
   if (!pet.alive) return pet;
 
   // Detect overfeeding BEFORE applying the hunger reduction:
-  // if the pet is already mostly full, feeding again hurts it.
+  // if the pet is already mostly full, feeding again costs life-years.
   if (pet.stats.hunger <= OVERFEED_HUNGER_THRESHOLD) {
-    pet.stats.health = clamp(pet.stats.health - OVERFEED_DAMAGE, 0, 100);
-    if (pet.stats.health <= 0) {
+    pet.age = Math.min(MAX_AGE, pet.age + OVERFEED_AGE_PENALTY);
+    if (pet.age >= MAX_AGE) {
       pet.alive = false;
       pet.causeOfDeath = 'overfed';
     }
