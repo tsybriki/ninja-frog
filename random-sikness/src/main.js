@@ -44,16 +44,25 @@ bindActions({
   },
 });
 
-// Random sickness events: every 25-75s, one stat drops by 3-10,
-// phone vibrates with a type-specific pattern, and a red "-N" floats
-// above Bob so the player sees what happened.
+// Random sickness events: every 15s, one stat changes by +/-5,
+// phone vibrates with a type-specific pattern, and a colored number
+// floats above Bob so the player sees what happened.
 function onSickness(updatedPet, event) {
   savePet(updatedPet);
   render(updatedPet);
   showSicknessIndicator(event.type, event.amount);
 }
 
-let sickness = startSicknessLoop(pet, onSickness);
+// Debug HUD: shows "next event in Ns" so we can verify the loop is alive.
+const debugEl = document.createElement('div');
+debugEl.id = 'sickness-debug';
+debugEl.style.cssText = 'position:fixed;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;padding:6px 10px;border-radius:6px;font:12px monospace;z-index:99';
+document.body.appendChild(debugEl);
+function onSicknessTick(remainingMs) {
+  debugEl.textContent = `next event in ${Math.ceil(remainingMs / 1000)}s`;
+}
+
+let sickness = startSicknessLoop(pet, onSickness, onSicknessTick);
 
 render(pet);
 requestAnimationFrame(loop);
