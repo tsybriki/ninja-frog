@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bob the Shrimp 🦐</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app">
+    <header>
+      <h1>🦐 Bob the Shrimp</h1>
+      <p class="age">Age: <span id="age">0</span>h / 100h</p>
+    </header>
+
+    <section class="bob-container">
+      <div class="bob-sprite" id="bob-sprite">🦐</div>
+      <p class="status" id="status">Bob is happy!</p>
+    </section>
+
+    <section class="stats">
+      <div class="stat">
+        <label>❤️ Health <span id="health-val">100</span></label>
+        <div class="bar"><div class="fill health" id="health-bar"></div></div>
+      </div>
+      <div class="stat">
+        <label>🍤 Hunger <span id="hunger-val">0</span></label>
+        <div class="bar"><div class="fill hunger" id="hunger-bar"></div></div>
+      </div>
+      <div class="stat">
+        <label>😴 Fatigue <span id="fatigue-val">0</span></label>
+        <div class="bar"><div class="fill fatigue" id="fatigue-bar"></div></div>
+      </div>
+      <div class="stat">
+        <label>🎾 Happiness <span id="happiness-val">100</span></label>
+        <div class="bar"><div class="fill happiness" id="happiness-bar"></div></div>
+      </div>
+    </section>
+
+    <section class="actions">
+      <button id="btn-feed">🍤 Feed</button>
+      <button id="btn-sleep">😴 Sleep</button>
+      <button id="btn-play">🎾 Play</button>
+    </section>
+
+    <section class="game-over hidden" id="game-over">
+      <h2 id="game-over-title">Game Over</h2>
+      <p id="game-over-text">Bob lived a full life.</p>
+      <button id="btn-new-game">New Game</button>
+    </section>
+  </main>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
