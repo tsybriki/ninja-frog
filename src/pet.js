@@ -106,6 +106,7 @@ export function play(pet) {
   if (!pet.alive) return pet;
   pet.stats.happiness = clamp(pet.stats.happiness + 25, 0, 100);
   pet.stats.fatigue   = clamp(pet.stats.fatigue   + 5, 0, 100);
+  pet.stats.hunger    = clamp(pet.stats.hunger    + 10, 0, 100);
   pet.age = Math.min(pet.age + 1, MAX_AGE);
   return pet;
 }
