@@ -26,9 +26,9 @@
   z-index: 10;
 }
 
-.sickness-hunger    { color: var(--hunger); text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(253,126,20,0.4); }
-.sickness-happiness { color: var(--happiness); text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(250,176,5,0.4); }
-.sickness-health    { color: var(--health); text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(250,82,82,0.5); }
+.sickness-hunger  { color: var(--hunger);   text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(253,126,20,0.4); }
+.sickness-fatigue { color: var(--fatigue);  text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(121,80,242,0.4); }
+.sickness-health  { color: var(--health);   text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(250,82,82,0.5); }
 
 @keyframes sickness-float {
   0%   { opacity: 0;   transform: translate(-50%, 10px) scale(0.6); }
