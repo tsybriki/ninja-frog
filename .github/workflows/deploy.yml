@@ -4,8 +4,9 @@ name: Deploy to GitHub Pages
 #   main branch    -> site root  (https://tsybriki.github.io/ninja-frog/)
 #   other branches -> /<branch>/ (https://tsybriki.github.io/ninja-frog/<branch>/)
 #
-# main keeps the canonical URL; every other branch gets its own subfolder
-# so URLs never collide.
+# Two jobs: one for main (publishes at gh-pages root), one for everything
+# else (publishes into a /<branch>/ subfolder). They share a concurrency
+# group so two branches pushing at once don't clobber each other.
 on:
   push:
     branches: ['**']
@@ -14,28 +15,46 @@ on:
 permissions:
   contents: write
 
-# Serialize deploys so concurrent branch pushes don't clobber each other.
 concurrency:
   group: gh-pages-deploy
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  deploy-main:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           path: src
           fetch-depth: 1
 
-      - name: Publish to gh-pages
+      - name: Publish main to site root
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./src
-          # Empty destination_dir = gh-pages root. Non-main branches go to /<branch>/.
-          destination_dir: ${{ github.ref_name == 'main' && '' || github.ref_name }}
+          destination_dir: ''
+          keep_files: true
+          force_orphan: false
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+
+  deploy-branch:
+    if: github.ref_name != 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+          fetch-depth: 1
+
+      - name: Publish branch to /<branch>/
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./src
+          destination_dir: ${{ github.ref_name }}
           keep_files: true
           force_orphan: false
           user_name: github-actions[bot]
