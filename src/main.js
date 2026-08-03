@@ -30,9 +30,23 @@ setInterval(() => savePet(pet), 5000);
 window.addEventListener('beforeunload', () => savePet(pet));
 
 // Open the "Catch the Flies" minigame.
-// Per Oleg's request: 1 game-hour (= 2 real minutes), no reward yet.
+// Per Oleg's request: 1 game-hour (= 2 real minutes), no reward yet,
+// but Bob loses 1 HP every 1.6s while the minigame is running.
 function openFliesGame() {
-  const game = createFliesGame();
+  const game = createFliesGame(
+    null, // onScoreChange
+    (amount) => {
+      // Drain HP from the pet. -1 every 1.6s, clamp to 0, check death.
+      if (!pet.alive) return;
+      pet.stats.health = Math.max(0, pet.stats.health - amount);
+      if (pet.stats.health <= 0) {
+        pet.alive = false;
+        pet.causeOfDeath = 'minigame';
+      }
+      savePet(pet);
+      render(pet);
+    }
+  );
   openMinigame({
     title: '🪰 Catch the Flies',
     container: game.container,
