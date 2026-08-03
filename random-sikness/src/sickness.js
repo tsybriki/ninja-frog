@@ -1,11 +1,11 @@
 // src/sickness.js — random misfortune events
 
 // Tunables
-export const SICKNESS_MIN_INTERVAL_MS = 25_000;
-export const SICKNESS_MAX_INTERVAL_MS = 75_000;
+export const SICKNESS_MIN_INTERVAL_MS = 15_000;
+export const SICKNESS_MAX_INTERVAL_MS = 15_000;
 export const SICKNESS_DAMAGE_MIN = 3;
 export const SICKNESS_DAMAGE_MAX = 10;
-export const SICKNESS_IMMUNITY_MS = 12_000;
+export const SICKNESS_IMMUNITY_MS = 4_000;
 
 // Vibration patterns per event type
 const VIBRATION_PATTERNS = {
