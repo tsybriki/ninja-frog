@@ -91,7 +91,8 @@ export function feed(pet) {
     return pet;
   }
 
-  pet.stats.hunger = clamp(pet.stats.hunger - 30, 0, 100);
+  pet.stats.hunger    = clamp(pet.stats.hunger    - 30, 0, 100);
+  pet.stats.fatigue   = clamp(pet.stats.fatigue   + 10, 0, 100);
   return pet;
 }
 
