@@ -1,8 +1,9 @@
 // src/main.js — bootstrap the game
 
 import { createPet, tick, feed, sleep, play } from './pet.js';
-import { render, bindActions } from './ui.js';
+import { render, bindActions, showSicknessIndicator } from './ui.js';
 import { savePet, loadPet, clearPet } from './storage.js';
+import { startSicknessLoop } from './sickness.js';
 
 let pet = loadPet();
 
@@ -37,8 +38,22 @@ bindActions({
     pet = createPet();
     savePet(pet);
     render(pet);
+    // Restart sickness loop for the new pet
+    sickness.stop();
+    sickness = startSicknessLoop(pet, onSickness);
   },
 });
+
+// Random sickness events: every 15s, one stat changes by +/-5,
+// phone vibrates with a type-specific pattern, and a colored number
+// floats above Bob so the player sees what happened.
+function onSickness(updatedPet, event) {
+  savePet(updatedPet);
+  render(updatedPet);
+  showSicknessIndicator(event.type, event.amount);
+}
+
+let sickness = startSicknessLoop(pet, onSickness);
 
 render(pet);
 requestAnimationFrame(loop);
