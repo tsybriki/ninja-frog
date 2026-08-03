@@ -72,8 +72,25 @@ export function tick(pet, deltaSec) {
 
 // --- Actions ---
 
+// Threshold: if hunger is already below this when we feed, it's overfeeding
+const OVERFEED_HUNGER_THRESHOLD = 5;
+// Damage taken when overfeeding
+const OVERFEED_DAMAGE = 5;
+
 export function feed(pet) {
   if (!pet.alive) return pet;
+
+  // Detect overfeeding BEFORE applying the hunger reduction:
+  // if the pet is already mostly full, feeding again hurts it.
+  if (pet.stats.hunger <= OVERFEED_HUNGER_THRESHOLD) {
+    pet.stats.health = clamp(pet.stats.health - OVERFEED_DAMAGE, 0, 100);
+    if (pet.stats.health <= 0) {
+      pet.alive = false;
+      pet.causeOfDeath = 'overfed';
+    }
+    return pet;
+  }
+
   pet.stats.hunger = clamp(pet.stats.hunger - 30, 0, 100);
   return pet;
 }
