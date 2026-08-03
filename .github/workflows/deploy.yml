@@ -1,14 +1,11 @@
 name: Deploy to GitHub Pages
 
-# Deploy every pushed branch into a subfolder of the `gh-pages` branch.
-# Resulting URLs:
-#   main branch         -> https://tsybriki.github.io/ninja-frog/
-#   random-sikness      -> https://tsybriki.github.io/ninja-frog/random-sikness/
-#   any other branch    -> https://tsybriki.github.io/ninja-frog/<branch>/
+# Deploy policy:
+#   main branch    -> site root  (https://tsybriki.github.io/ninja-frog/)
+#   other branches -> /<branch>/ (https://tsybriki.github.io/ninja-frog/<branch>/)
 #
-# Each branch lives under its own folder in the gh-pages branch so URLs
-# never collide. A concurrency group serializes the writes so concurrent
-# branch pushes don't race.
+# main keeps the canonical URL; every other branch gets its own subfolder
+# so URLs never collide.
 on:
   push:
     branches: ['**']
@@ -17,7 +14,7 @@ on:
 permissions:
   contents: write
 
-# Serialize deploys so two branches pushing at once don't clobber each other.
+# Serialize deploys so concurrent branch pushes don't clobber each other.
 concurrency:
   group: gh-pages-deploy
   cancel-in-progress: false
@@ -32,12 +29,13 @@ jobs:
           path: src
           fetch-depth: 1
 
-      - name: Deploy branch to gh-pages/<branch>
+      - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./src
-          destination_dir: ${{ github.ref_name }}
+          # Empty destination_dir = gh-pages root. Non-main branches go to /<branch>/.
+          destination_dir: ${{ github.ref_name == 'main' && '' || github.ref_name }}
           keep_files: true
           force_orphan: false
           user_name: github-actions[bot]
