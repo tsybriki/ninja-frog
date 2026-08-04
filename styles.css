@@ -342,3 +342,212 @@ button:disabled {
   50%  { transform: translate(-50%, -50%) scale(1.5) rotate(45deg); opacity: 1; }
   100% { transform: translate(-50%, -50%) scale(0.2) rotate(180deg); opacity: 0; }
 }
+
+/* --- Economy bar (coins + shop button) --- */
+.economy-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.coins-pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fff3bf;
+  border: 2px solid #f59f00;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #5c3c00;
+  user-select: none;
+}
+.coins-pill.small {
+  padding: 6px 10px;
+  font-size: 14px;
+}
+.coins-emoji { font-size: 18px; }
+.shop-btn {
+  padding: 10px 14px;
+  font-size: 14px;
+  background: #4dabf7;
+  flex: 0 0 auto;
+}
+.shop-btn:hover { background: #339af0; }
+
+/* --- Inventory strip --- */
+.inventory-strip {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.inv-slot {
+  background: #f1f3f5;
+  border: 2px dashed #ced4da;
+  border-radius: 10px;
+  padding: 8px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.inv-slot:hover {
+  background: #e7f5ff;
+  border-color: #74c0fc;
+}
+.inv-slot.equipped {
+  background: #fff3bf;
+  border: 2px solid #f59f00;
+  border-style: solid;
+}
+.inv-slot.equipped:empty,
+.inv-slot.equipped .inv-slot-content { font-size: 22px; }
+.inv-slot-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #868e96;
+  margin-bottom: 4px;
+}
+.inv-slot-content {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  min-height: 24px;
+}
+
+/* --- Shop modal --- */
+.shop-card { max-height: 92vh; }
+.shop-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+.shop-tab {
+  flex: 1;
+  padding: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  color: #495057;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.shop-tab.active {
+  background: white;
+  color: #1971c2;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.shop-tab:hover:not(.active) { background: rgba(255,255,255,0.4); }
+
+.shop-body {
+  background: rgba(255,255,255,0.4);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 360px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+.shop-card-item,
+.inv-card {
+  background: white;
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+.shop-card-item .item-emoji,
+.inv-card .item-emoji {
+  font-size: 36px;
+  line-height: 1.1;
+}
+.shop-card-item .item-name,
+.inv-card .item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #343a40;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shop-card-item .item-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #5c3c00;
+}
+.shop-card-item .buy-btn,
+.inv-card .act-btn {
+  width: 100%;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  background: var(--good);
+  transition: background 0.15s, transform 0.1s;
+}
+.shop-card-item .buy-btn:hover,
+.inv-card .act-btn:hover { background: #2f9e44; }
+.shop-card-item .buy-btn:active,
+.inv-card .act-btn:active { transform: scale(0.97); }
+.shop-card-item .buy-btn:disabled,
+.inv-card .act-btn:disabled { background: #adb5bd; cursor: not-allowed; }
+
+.inv-card .act-btn.unequip { background: #868e96; }
+.inv-card .act-btn.unequip:hover { background: #495057; }
+.inv-card .act-btn.equip { background: #4dabf7; }
+.inv-card .act-btn.equip:hover { background: #339af0; }
+.inv-card .act-btn.eat { background: #fd7e14; }
+.inv-card .act-btn.eat:hover { background: #e8590c; }
+.inv-card .equipped-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f59f00;
+  letter-spacing: 0.5px;
+}
+.inv-empty {
+  text-align: center;
+  color: #868e96;
+  padding: 32px 12px;
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* Bob sprite cosmetic overlay (set via JS) */
+.bob-cosmetics {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.bob-cosmetics > span {
+  position: absolute;
+  font-size: 28px;
+  line-height: 1;
+}
+.bob-cosmetics > .slot-hat  { top: -4px;  left: 50%; transform: translateX(-50%); }
+.bob-cosmetics > .slot-side { top: 30%;   right: -2px; }
+
