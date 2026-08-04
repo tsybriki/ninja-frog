@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bob the Shrimp 🦐</title>
+  <!-- Web font with full cyrillic + emoji coverage. Without this, some
+       browsers fall back to whatever decorative font the OS ships (e.g.
+       Tengwar/Quivira on certain Linux setups), which mangles Cyrillic
+       into random glyphs ("Купить" turns into "?..."). Noto Sans from
+       Google's CDN covers all three reliably. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap"
+        crossorigin="anonymous">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -15,7 +25,7 @@
 
     <section class="bob-container">
       <div class="bob-sprite" id="bob-sprite">
-        <span class="bob-sprite-emoji" aria-hidden="true">🦐</span>
+        <img class="bob-image" src="assets/bob.png" alt="Bob the Shrimp" />
       </div>
       <p class="status" id="status">Bob is happy!</p>
     </section>
