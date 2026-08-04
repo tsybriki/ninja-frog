@@ -340,6 +340,11 @@ button:disabled {
 }
 
 /* Targets mini-game: same container as flies, different shape */
+.targets-field {
+  /* Slightly different cursor so the player knows it's drag-and-shoot. */
+  cursor: crosshair;
+  touch-action: none;
+}
 .minigame-target {
   position: absolute;
   font-size: 40px;
@@ -368,6 +373,39 @@ button:disabled {
   50%  { transform: translate(-50%, -50%) scale(1.6) rotate(45deg); opacity: 1; }
   100% { transform: translate(-50%, -50%) scale(0.2) rotate(180deg); opacity: 0; }
 }
+
+/* Bowman (the player): pinned at lower-left of the targets field.
+   Emoji keeps the asset count at zero. */
+.bowman {
+  position: absolute;
+  left: 50px;
+  bottom: 30px;
+  font-size: 56px;
+  line-height: 1;
+  transform: translate(-50%, -50%) scaleX(-1); /* mirror so the bow points right */
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.35));
+  pointer-events: none;
+  animation: bowman-idle 1.4s ease-in-out infinite;
+}
+@keyframes bowman-idle {
+  0%, 100% { transform: translate(-50%, -50%) scaleX(-1) translateY(0); }
+  50%      { transform: translate(-50%, -50%) scaleX(-1) translateY(-3px); }
+}
+
+/* Trajectory preview: rendered as SVG (drawn by JS), no fixed children. */
+.bow-preview { position: absolute; inset: 0; pointer-events: none; }
+.bow-preview.hidden { display: none; }
+
+/* Flying arrow */
+.flying-arrow {
+  position: absolute;
+  font-size: 36px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+  pointer-events: none;
+  will-change: transform, left, top;
+}
+
 .minigame-score {
   position: absolute;
   top: 8px;
