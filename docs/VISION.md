@@ -72,9 +72,14 @@ Implemented via `Date.now()` deltas, not `setInterval` ticks — so it works cor
 
 ## Economy (added in v2, ~2026)
 
-- **Coins** earned by playing "Catch the Flies": 1 🪙 per 50 caught (flushed on close).
+- **Coins** earned by playing minigames:
+  - 🪰 Catch the Flies: **1 🪙 per 25** caught
+  - 🎯 Shooting Gallery: **2 🪙 per 15** landed
+- **Per-minigame session cap: 100 coins** — the game ends itself and flushes when the cap is hit so you can't farm past it in one run.
 - **Shop** with 7 items across two categories:
   - **Cosmetics** (equip, +1 happiness/hr passive while worn): 🎾 Шарик (10), 🧸 Осьминог (30), 👑 Корона (60), 🎀 Бабочка (35)
   - **Food** (eat for one-shot stat effects): 🍰 Торт (10, -20 hunger / +10 happiness), 🥩 Стейк (5, -10 hunger), 🍖 Пир (100, -40 hunger / +25 happiness)
 - **Inventory strip** under the action buttons: equipped slot + count of cosmetics + count of food.
+- **Bob is now a hand-drawn SVG** (`assets/bob.svg`) instead of the 🦐 emoji.
+- New **🤚 Pet** action: low-cost happiness boost (+18, +3 fatigue, no aging).
 - Save migrated automatically from v1 (no `coins` field → `0`, no `inventory` → `[]`).

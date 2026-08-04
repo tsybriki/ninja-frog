@@ -131,6 +131,22 @@ export function play(pet) {
   return pet;
 }
 
+// Petting is a low-cost, low-reward action: calms Bob down a little and
+// makes him happy. Cheaper than feeding (no hunger trade-off), so it's the
+// go-to when you're desperate but don't want to age Bob out.
+//
+// Knobs chosen so that 4 pets ≈ +1 unit of happiness on average but the
+// happy stat can grow at a sustainable pace over a run.
+const PET_HAPPINESS_GAIN = 18;   // each pet
+const PET_FATIGUE_GAIN   = 3;    // petting tires him out just a tiny bit
+
+export function pet_(pet) {
+  if (!pet.alive) return pet;
+  pet.stats.happiness = clamp(pet.stats.happiness + PET_HAPPINESS_GAIN, 0, 100);
+  pet.stats.fatigue   = clamp(pet.stats.fatigue   + PET_FATIGUE_GAIN,   0, 100);
+  return pet;
+}
+
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
