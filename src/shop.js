@@ -63,7 +63,7 @@ function renderBuyTab(pet) {
 
     const btn = document.createElement('button');
     btn.className = 'buy-btn';
-    btn.textContent = 'Купить';
+    btn.textContent = '🛒 Купить';
     const canBuy = pet.alive && (pet.coins || 0) >= item.price;
     btn.disabled = !canBuy;
     btn.addEventListener('click', () => {
@@ -130,7 +130,7 @@ function renderInvTab(pet) {
       }
       const btn = document.createElement('button');
       btn.className = isEquipped ? 'act-btn unequip' : 'act-btn equip';
-      btn.textContent = isEquipped ? 'Снять' : 'Надеть';
+      btn.textContent = isEquipped ? '✕ Снять' : '✓ Надеть';
       btn.disabled = !pet.alive;
       btn.addEventListener('click', () => {
         if (!lastPet || !lastPet.alive) return;
@@ -146,7 +146,7 @@ function renderInvTab(pet) {
     } else {
       const btn = document.createElement('button');
       btn.className = 'act-btn eat';
-      btn.textContent = 'Съесть';
+      btn.textContent = '🍴 Съесть';
       btn.disabled = !pet.alive;
       btn.addEventListener('click', () => {
         const eaten = eatFood(lastPet, entry.id);
