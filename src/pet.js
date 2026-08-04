@@ -1,13 +1,28 @@
 // src/pet.js — Bob the Shrimp model
+//
+// Game-time vs real-time:
+//   A full Bob lifetime is exactly 1 real-time hour (3600 seconds).
+//   MAX_AGE is 100 game-hours = 6000 game-minutes, so we run at
+//     TICK_SPEED = 10 game-minutes per real-second  (6000 / 3600)
+//   Equivalently, 1 game-hour = 6 real-time minutes.
+//
+// Decay rates are stated per real second and tuned so each stat still
+// crosses from 0 to 100 over a full run (1 hour):
+//   hunger     :  0 -> 100 in 1 hour  =  100/3600 ≈  25/900  per real second
+//   fatigue    :  0 -> 100 in 1 hour  =  100/3600 ≈  25/900
+//   happiness  :  drops from 100 to 0 in 2 hours = 12.5/900 per real sec
+//                 (still safe past the normal lifetime — no cheesing)
+//   age        :  0 -> 100 game-hours in 1 hour = 100/3600 game-hours/sec
+//                                                     =   10/60 game-min/sec
 
-export const TICK_SPEED = 25; // 1 real second = 25 game-minutes
+export const TICK_SPEED = 10; // 1 real second = 10 game-minutes (1 game-hour per 6 real seconds)
 export const MAX_AGE = 100;   // game-hours
 
 export const DECAY = {
-  hunger:    25 / 60,   // per real second
-  fatigue:   25 / 60,
-  happiness: 12.5 / 60,
-  age:       25 / 60,   // game-hours per real second
+  hunger:    100 / 3600, // per real second (== 25 / 900)
+  fatigue:   100 / 3600,
+  happiness: 100 / 7200, // half the hunger rate → falls over ~2 hours
+  age:       100 / 3600, // game-hours per real second == TICK_SPEED / 60
 };
 
 export function createPet() {
@@ -93,8 +108,11 @@ export function tick(pet, deltaSec) {
 
 // Threshold: if hunger is already below this when we feed, it's overfeeding
 const OVERFEED_HUNGER_THRESHOLD = 5;
-// Game-hours stolen from Bob's life on overfeed
-const OVERFEED_AGE_PENALTY = 5;
+// Game-minutes stolen from Bob's life on overfeed. Proportional to the new
+// 1-hour lifetime: was 5 GAME-HOURS in the 4-minute build, now 30
+// game-minutes (3 real-time minutes), so overfeeding still bites but doesn't
+// nuke more than a quarter of his life in a single bad click.
+const OVERFEED_AGE_PENALTY = 0.5;
 
 export function feed(pet) {
   if (!pet.alive) return pet;

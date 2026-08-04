@@ -31,22 +31,22 @@ A tamagotchi-style virtual pet: the player keeps a shrimp named **Bob** alive by
 ## Lifecycle
 
 - **Start:** Bob is young, age = 0
-- **Aging:** +1 game-hour = +1 age (1 real minute = 1 game hour? TBD — see decay rates)
-- **Death:** at age = 100 game-hours, Bob dies of old age
+- **Aging:** 1 game-hour = 6 real-time seconds (1 game-hour = 6 real seconds)
+- **Death:** at age = 100 game-hours, Bob dies of old age → **lifetime = 1 real hour (3600 s)**
 - **Game Over:** "Bob lived a full life" + "New Game" button (fresh start)
 
 ## Decay Rates (in real time)
 
 Implemented via `Date.now()` deltas, not `setInterval` ticks — so it works correctly when the tab is backgrounded.
 
-**Single mode (accelerated):** full lifecycle = 4 real-time minutes.
+**Single mode (1-hour lifetime):** full lifecycle = 60 real-time minutes.
 
-- `tickSpeed = 25` (1 real second = 25 game-minutes)
-- **Hunger:** +25/60 per real second (0 → 100 in 4 min)
-- **Fatigue:** +25/60 per real second (0 → 100 in 4 min)
-- **Happiness:** −12.5/60 per real second (0 → 100 in 8 min if ignored)
-- **Age:** +25/60 per real second (1 game-hour per 2.4 real seconds; 0 → 100 in 4 min)
-- **Health:** drops if any other stat is critical (<10)
+- `tickSpeed = 10` (1 real second = 10 game-minutes = 1/6 game-hour per second)
+- **Hunger:** +100/3600 ≈ 0.0278 per real second (0 → 100 in 60 min)
+- **Fatigue:** +100/3600 ≈ 0.0278 per real second (0 → 100 in 60 min)
+- **Happiness:** −100/7200 ≈ 0.0139 per real second (100 → 0 in 120 min, safe past the lifetime)
+- **Age:** +100/3600 game-hours per real second (= 10 game-min/sec; 0 → 100 in 60 min)
+- **Health:** drops 1 HP every 6 real minutes while alive
 
 ## Visual Direction
 
