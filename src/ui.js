@@ -90,12 +90,11 @@ export function render(pet) {
 
   // Disable buttons when dead
   const dead = !pet.alive;
-  document.getElementById('btn-feed').disabled     = dead;
-  document.getElementById('btn-sleep').disabled    = dead;
-  document.getElementById('btn-play').disabled     = dead;
-  document.getElementById('btn-pet').disabled      = dead;
-  document.getElementById('btn-shoot').disabled    = dead;
-  document.getElementById('btn-shop').disabled     = dead;
+  document.getElementById('btn-feed').disabled  = dead;
+  document.getElementById('btn-sleep').disabled = dead;
+  document.getElementById('btn-pet').disabled   = dead;
+  document.getElementById('btn-games').disabled = dead;
+  document.getElementById('btn-shop').disabled  = dead;
 }
 
 /**
@@ -229,10 +228,10 @@ function hideGameOver() {
 }
 
 export function bindActions(handlers) {
-  document.getElementById('btn-feed').addEventListener('click', handlers.feed);
+  document.getElementById('btn-feed').addEventListener('click',  handlers.feed);
   document.getElementById('btn-sleep').addEventListener('click', handlers.sleep);
-  document.getElementById('btn-play').addEventListener('click', handlers.play);
-  document.getElementById('btn-pet').addEventListener('click', handlers.pet);
-  document.getElementById('btn-shoot').addEventListener('click', handlers.shoot);
+  document.getElementById('btn-pet').addEventListener('click',   handlers.pet);
+  document.getElementById('btn-games').addEventListener('click', handlers.games);
+  document.getElementById('btn-shop').addEventListener('click',  handlers.shop);
   document.getElementById('btn-new-game').addEventListener('click', handlers.newGame);
 }

@@ -14,7 +14,9 @@
     </header>
 
     <section class="bob-container">
-      <div class="bob-sprite" id="bob-sprite"><img src="assets/bob.svg" alt="Bob the Shrimp" class="bob-image" /></div>
+      <div class="bob-sprite" id="bob-sprite">
+        <span class="bob-sprite-emoji" aria-hidden="true">🦐</span>
+      </div>
       <p class="status" id="status">Bob is happy!</p>
     </section>
 
@@ -40,9 +42,9 @@
     <section class="actions">
       <button id="btn-feed">🍤 Feed</button>
       <button id="btn-sleep">😴 Sleep</button>
-      <button id="btn-play">🎾 Play</button>
       <button id="btn-pet">🤚 Pet</button>
-      <button id="btn-shoot">🎯 Shoot</button>
+      <button id="btn-games">🎮 Игры</button>
+      <button id="btn-shop">🛒 Shop</button>
     </section>
 
     <section class="economy-bar">
@@ -50,7 +52,6 @@
         <span class="coins-emoji">🪙</span>
         <span id="coins-val">0</span>
       </div>
-      <button id="btn-shop" class="shop-btn">🛒 Магазин</button>
     </section>
 
     <section class="inventory-strip" id="inventory-strip" aria-label="Инвентарь">
@@ -85,6 +86,35 @@
         <div class="minigame-footer">
           <button id="minigame-start" class="minigame-btn primary">Start</button>
           <button id="minigame-close" class="minigame-btn">Close</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Games menu: picker that appears when the player taps the 🎮 Игры
+         button. Selecting a card launches one of the supported minigames. -->
+    <section class="minigame-overlay hidden" id="games-menu">
+      <div class="minigame-card games-menu-card">
+        <div class="minigame-header">
+          <h2>🎮 Выбери игру</h2>
+          <div class="coins-pill small" title="Баланс">
+            <span class="coins-emoji">🪙</span><span id="games-menu-coins">0</span>
+          </div>
+        </div>
+        <div class="games-menu-grid">
+          <button class="game-tile" data-game="flies">
+            <span class="game-tile-emoji">🪰</span>
+            <span class="game-tile-title">Поймай мух</span>
+            <span class="game-tile-rate">1 🪙 за 25 мух</span>
+          </button>
+          <button class="game-tile" data-game="targets">
+            <span class="game-tile-emoji">🎯</span>
+            <span class="game-tile-title">Попади в мишени</span>
+            <span class="game-tile-rate">2 🪙 за 15 попаданий</span>
+          </button>
+        </div>
+        <p class="games-menu-cap">Лимит за сессию: <strong><span id="games-menu-cap">100</span></strong> 🪙</p>
+        <div class="minigame-footer">
+          <button id="games-menu-close" class="minigame-btn">Закрыть</button>
         </div>
       </div>
     </section>

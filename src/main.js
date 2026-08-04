@@ -44,68 +44,96 @@ setInterval(() => {
   render(pet);
 }, 36 * 1000);
 
-// Open the "Catch the Flies" minigame.
-// Flies are now a coin-farming minigame: 1 coin per 25 caught, no HP drain.
-function openFliesGame() {
-  const game = createFliesGame(
-    null, // onScoreChange (unused)
-    null, // onCoin (live counter via economy.addFlies inside the game)
-  );
-  // Bind the live pet so internal addFlies() can mutate it.
-  game.setPet(pet);
+// --- Games menu ---
+//
+// A small picker that appears when the player taps "🎮 Игры". Each tile
+// launches the corresponding minigame. We use a registry-style lookup so
+// adding a third game later is a one-liner.
+//
+// Why a registry instead of calling each game's open fn directly?
+// Centralises the "what is a game" question in one place (openGame below),
+// so the modal is just data — and the cap alert text stays in one spot.
 
-  openMinigame({
+const GAME_REGISTRY = {
+  // key -> { title, factory, onFinish }
+  flies: {
     title: '🪰 Catch the Flies',
-    container: game.container,
-    startGameFn: {
-      start: () => game.start(),
-      stop: () => game.stop(),
-    },
-    onFinish: (score) => {
-      // Flush fractional coins → whole coins and announce the reward.
+    factory: () => createFliesGame(null, null),
+    onFinish: (pet, score) => {
       const earned = flushCoins(pet);
-      const total  = pet.coins || 0;
       savePet(pet);
       render(pet);
-
+      const total = pet.coins || 0;
       const coinLine = earned > 0
         ? `🪙 +${earned} монета${earned === 1 ? '' : earned < 5 ? 'ы' : '!'}. Баланс: ${total}.`
         : `Пока 0 монет (нужно 25 мух = 1 🪙).`;
       alert(`🪰 Поймано мух: ${score}\n${coinLine}`);
     },
-  });
-}
-
-// Open the "Shooting Gallery" minigame.
-// Targets pop up; each one shot = 2 coins per 15 hits (cap 100 / session).
-function openTargetsGame() {
-  const game = createTargetsGame(null, null);
-  game.setPet(pet);
-
-  openMinigame({
+  },
+  targets: {
     title: '🎯 Shooting Gallery',
-    container: game.container,
-    startGameFn: {
-      start: () => game.start(),
-      stop:  () => game.stop(),
-    },
-    onFinish: (stats) => {
+    factory: () => createTargetsGame(null, null),
+    onFinish: (pet, stats) => {
       const earned = flushCoins(pet);
-      const total  = pet.coins || 0;
       savePet(pet);
       render(pet);
-
-      // `stats` may be undefined if the modal's close button was used.
+      const total  = pet.coins || 0;
       const hits = (stats && stats.shots) || 0;
       let reasonLine = '';
-      if (stats && stats.reason === 'cap') reasonLine = '\n🏁 Лимит 100 монет за сессию достигнут.';
+      if (stats && stats.reason === 'cap')  reasonLine = '\n🏁 Лимит 100 монет за сессию достигнут.';
       else if (stats && stats.reason === 'time') reasonLine = '\n⏱ Время вышло.';
-
       const coinLine = earned > 0
         ? `🪙 +${earned} (15 попаданий = 2 монеты). Баланс: ${total}.`
         : `Пока 0 монет (нужно 15 попаданий = 2 🪙).`;
       alert(`🎯 Попаданий: ${hits}${reasonLine}\n${coinLine}`);
     },
+  },
+};
+
+function openGame(key) {
+  const spec = GAME_REGISTRY[key];
+  if (!spec) return;
+  const game = spec.factory();
+  if (game.setPet) game.setPet(pet);
+  openMinigame({
+    title: spec.title,
+    container: game.container,
+    startGameFn: {
+      start: () => game.start(),
+      stop:  () => game.stop(),
+    },
+    onFinish: (scoreOrStats) => spec.onFinish(pet, scoreOrStats),
+  });
+}
+
+function openGamesMenu() {
+  const overlay = document.getElementById('games-menu');
+  const coins   = document.getElementById('games-menu-coins');
+  const cap     = document.getElementById('games-menu-cap');
+  if (coins) coins.textContent = Math.floor(pet.coins || 0);
+  if (cap)   cap.textContent   = SESSION_COIN_CAP;
+  if (overlay) overlay.classList.remove('hidden');
+}
+
+function closeGamesMenu() {
+  const overlay = document.getElementById('games-menu');
+  if (overlay) overlay.classList.add('hidden');
+}
+
+function bindGamesMenu() {
+  document.getElementById('btn-games').addEventListener('click', openGamesMenu);
+  document.getElementById('games-menu-close').addEventListener('click', closeGamesMenu);
+  // Each tile in the picker launches the corresponding game, then closes
+  // the menu so the minigame overlay is the only thing on screen.
+  document.querySelectorAll('.game-tile').forEach((tile) => {
+    tile.addEventListener('click', () => {
+      const key = tile.dataset.game;
+      if (!key) return;
+      closeGamesMenu();
+      // Slight defer so the menu close animation isn't visible behind the
+      // newly opened minigame modal.
+      setTimeout(() => openGame(key), 50);
+    });
   });
 }
 
@@ -162,7 +190,6 @@ function bindInventoryStrip() {
 bindActions({
   feed: () => { feed(pet); render(pet); },
   sleep: () => { sleep(pet); render(pet); },
-  play: () => { openFliesGame(); },
   pet: () => {
     pet_(pet);
     // Show a floating "+18 ❤️" indicator over Bob so the player sees the
@@ -173,7 +200,8 @@ bindActions({
     });
     render(pet);
   },
-  shoot: () => { openTargetsGame(); },
+  games: () => { openGamesMenu(); },
+  shop:  () => { openShop(pet); },
   newGame: () => {
     if (!confirm('Начать новую игру? Монеты и инвентарь сбросятся.')) return;
     clearPet();
@@ -183,6 +211,7 @@ bindActions({
   },
 });
 
+bindGamesMenu();
 bindShop(openShopHandler, closeShopHandler);
 bindInventoryStrip();
 

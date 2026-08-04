@@ -122,6 +122,13 @@ h1 {
   position: relative;
   display: inline-block;
 }
+/* Emoji sprite (default). If you ever want to swap in a real photo/PDF,
+   replace the markup in index.html with an <img class="bob-image"> and the
+   rule below will style it. The same .bob-sprite.happy / .sad / .dead
+   classes already work for both. */
+.bob-sprite-emoji {
+  display: inline-block;
+}
 .bob-image {
   width: 160px;
   height: 160px;
@@ -470,6 +477,59 @@ button:disabled {
   font-size: 18px;
   font-weight: 600;
   min-height: 24px;
+}
+
+/* --- Games menu (picker of available minigames) --- */
+.games-menu-card { max-height: 92vh; }
+.games-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 12px;
+}
+@media (max-width: 380px) {
+  .games-menu-grid { grid-template-columns: 1fr; }
+}
+.game-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 12px;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s;
+  font: inherit;
+  color: inherit;
+}
+.game-tile:hover  { border-color: #4dabf7; box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+.game-tile:active { transform: scale(0.97); }
+.game-tile-emoji  { font-size: 48px; line-height: 1; }
+.game-tile-title  {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1971c2;
+  text-align: center;
+}
+.game-tile-rate {
+  font-size: 12px;
+  color: #868e96;
+  text-align: center;
+}
+.games-menu-cap {
+  text-align: center;
+  font-size: 13px;
+  color: #868e96;
+  margin: 12px 0 0;
+}
+.games-menu-cap strong {
+  color: #5c3c00;
+  font-weight: 700;
 }
 
 /* --- Shop modal --- */
