@@ -1,0 +1,704 @@
+/* Bob the Shrimp — v1 styles */
+
+:root {
+  --bg-deep: #0a2540;
+  --bg-mid: #1864ab;
+  --bg-light: #4dabf7;
+  --panel: rgba(255, 255, 255, 0.92);
+  --text: #1a1a1a;
+  --health: #fa5252;
+  --hunger: #fd7e14;
+  --fatigue: #7950f2;
+  --happiness: #fab005;
+  --good: #40c057;
+  /* Floating sickness indicators */
+  --sickness-color: #e03131;
+}
+
+/* --- Random sickness indicators --- */
+.sickness-indicator {
+  pointer-events: none;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--sickness-color);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(224,49,49,0.4);
+  animation: sickness-float 1.2s ease-out forwards;
+  z-index: 10;
+}
+
+.sickness-hunger  { color: var(--hunger);   text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(253,126,20,0.4); }
+.sickness-fatigue { color: var(--fatigue);  text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(121,80,242,0.4); }
+.sickness-health  { color: var(--health);   text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(250,82,82,0.5); }
+
+/* Floating petting indicator */
+.pet-indicator {
+  pointer-events: none;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #2f9e44;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 6px rgba(64,192,87,0.4);
+  animation: sickness-float 1.2s ease-out forwards;
+  z-index: 10;
+}
+
+@keyframes sickness-float {
+  0%   { opacity: 0;   transform: translate(-50%, 10px) scale(0.6); }
+  20%  { opacity: 1;   transform: translate(-50%, -10px) scale(1.15); }
+  100% { opacity: 0;   transform: translate(-50%, -60px) scale(1); }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 60%, var(--bg-light) 100%);
+  min-height: 100vh;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+#app {
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+}
+
+.age {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.bob-container {
+  text-align: center;
+  background: linear-gradient(180deg, #d0ebff 0%, #74c0fc 100%);
+  border-radius: 12px;
+  padding: 24px 16px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bob-container::before,
+.bob-container::after {
+  content: "○";
+  position: absolute;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  animation: bubble 6s linear infinite;
+}
+
+.bob-container::before { left: 20%; animation-delay: 0s; }
+.bob-container::after  { left: 70%; animation-delay: 3s; }
+
+@keyframes bubble {
+  0%   { bottom: -20px; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { bottom: 110%; opacity: 0; }
+}
+
+.bob-sprite {
+  font-size: 80px;
+  line-height: 1;
+  transition: transform 0.2s;
+  position: relative;
+  display: inline-block;
+}
+/* Emoji sprite (default). If you ever want to swap in a real photo/PDF,
+   replace the markup in index.html with an <img class="bob-image"> and the
+   rule below will style it. The same .bob-sprite.happy / .sad / .dead
+   classes already work for both. */
+.bob-sprite-emoji {
+  display: inline-block;
+}
+.bob-image {
+  width: 180px;
+  height: 180px;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.bob-sprite.happy { animation: wiggle 1s ease-in-out infinite; }
+.bob-sprite.sad   { transform: rotate(180deg); }
+.bob-sprite.dead  { transform: rotate(90deg); filter: grayscale(1); }
+
+@keyframes wiggle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-8px) rotate(5deg); }
+}
+
+.status {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: #495057;
+  font-style: italic;
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stat label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.bar {
+  background: #e9ecef;
+  border-radius: 8px;
+  height: 14px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 8px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.fill.health    { background: var(--health); }
+.fill.hunger    { background: var(--hunger); }
+.fill.fatigue   { background: var(--fatigue); }
+.fill.happiness { background: var(--happiness); }
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+@media (max-width: 380px) {
+  .actions { grid-template-columns: repeat(3, 1fr); }
+}
+
+button {
+  padding: 12px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  background: var(--good);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
+}
+
+button:hover  { background: #2f9e44; }
+button:active { transform: scale(0.96); }
+button:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.game-over {
+  text-align: center;
+  padding: 20px;
+  background: #fff3bf;
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.game-over h2 {
+  margin: 0 0 8px;
+  color: #c92a2a;
+}
+
+.game-over.hidden {
+  display: none;
+}
+
+#btn-new-game {
+  background: #c92a2a;
+  margin-top: 12px;
+}
+#btn-new-game:hover { background: #a61e1e; }
+
+/* --- Minigame overlay --- */
+.minigame-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+.minigame-overlay.hidden { display: none; }
+
+.minigame-card {
+  background: linear-gradient(180deg, #d0ebff 0%, #74c0fc 100%);
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.minigame-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.minigame-header h2 { margin: 0; font-size: 20px; }
+.minigame-timer {
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.minigame-body {
+  position: relative;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  height: 360px;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.minigame-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.minigame-btn {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+  background: #adb5bd;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.minigame-btn.primary { background: var(--good); }
+.minigame-btn.primary:hover { background: #2f9e44; }
+.minigame-btn.hidden { display: none; }
+
+/* --- Catch the Flies --- */
+.minigame-canvas {
+  position: absolute;
+  inset: 0;
+}
+.minigame-fly-layer {
+  position: absolute;
+  inset: 0;
+}
+.minigame-fly {
+  position: absolute;
+  font-size: 32px;
+  cursor: pointer;
+  user-select: none;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s, opacity 0.2s;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  animation: fly-buzz 0.4s ease-in-out infinite alternate;
+  touch-action: manipulation;
+}
+.minigame-fly.caught {
+  animation: fly-catch 0.25s ease-out forwards;
+  pointer-events: none;
+}
+.minigame-fly.escaped {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+  transition: opacity 0.4s, transform 0.4s;
+}
+
+/* Targets mini-game: same container as flies, different shape */
+.targets-field {
+  /* Slightly different cursor so the player knows it's drag-and-shoot. */
+  cursor: crosshair;
+  touch-action: none;
+}
+.minigame-target {
+  position: absolute;
+  font-size: 40px;
+  cursor: pointer;
+  user-select: none;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+  animation: target-pop-in 0.18s ease-out;
+  touch-action: manipulation;
+}
+.minigame-target.hit {
+  animation: target-hit 0.22s ease-out forwards;
+  pointer-events: none;
+}
+.minigame-target.escaped {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+  transition: opacity 0.25s, transform 0.25s;
+}
+@keyframes target-pop-in {
+  from { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  to   { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+}
+@keyframes target-hit {
+  0%   { transform: translate(-50%, -50%) scale(1)   rotate(0);   opacity: 1; }
+  50%  { transform: translate(-50%, -50%) scale(1.6) rotate(45deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.2) rotate(180deg); opacity: 0; }
+}
+
+/* Bowman (the player): pinned at lower-left of the targets field.
+   Emoji keeps the asset count at zero. */
+.bowman {
+  position: absolute;
+  left: 50px;
+  bottom: 30px;
+  font-size: 56px;
+  line-height: 1;
+  transform: translate(-50%, -50%) scaleX(-1); /* mirror so the bow points right */
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.35));
+  pointer-events: none;
+  animation: bowman-idle 1.4s ease-in-out infinite;
+}
+@keyframes bowman-idle {
+  0%, 100% { transform: translate(-50%, -50%) scaleX(-1) translateY(0); }
+  50%      { transform: translate(-50%, -50%) scaleX(-1) translateY(-3px); }
+}
+
+/* Trajectory preview: rendered as SVG (drawn by JS), no fixed children. */
+.bow-preview { position: absolute; inset: 0; pointer-events: none; }
+.bow-preview.hidden { display: none; }
+
+/* Flying arrow */
+.flying-arrow {
+  position: absolute;
+  font-size: 36px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+  pointer-events: none;
+  will-change: transform, left, top;
+}
+
+.minigame-score {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 5;
+}
+.minigame-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  z-index: 5;
+}
+
+@keyframes fly-buzz {
+  from { transform: translate(-50%, -50%) rotate(-8deg); }
+  to   { transform: translate(-50%, -50%) rotate(8deg);  }
+}
+@keyframes fly-catch {
+  0%   { transform: translate(-50%, -50%) scale(1)   rotate(0);   opacity: 1; }
+  50%  { transform: translate(-50%, -50%) scale(1.5) rotate(45deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.2) rotate(180deg); opacity: 0; }
+}
+
+/* --- Economy bar (coins + shop button) --- */
+.economy-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.coins-pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fff3bf;
+  border: 2px solid #f59f00;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #5c3c00;
+  user-select: none;
+}
+.coins-pill.small {
+  padding: 6px 10px;
+  font-size: 14px;
+}
+.coins-emoji { font-size: 18px; }
+.shop-btn {
+  padding: 10px 14px;
+  font-size: 14px;
+  background: #4dabf7;
+  flex: 0 0 auto;
+}
+.shop-btn:hover { background: #339af0; }
+
+/* --- Inventory strip --- */
+.inventory-strip {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.inv-slot {
+  background: #f1f3f5;
+  border: 2px dashed #ced4da;
+  border-radius: 10px;
+  padding: 8px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.inv-slot:hover {
+  background: #e7f5ff;
+  border-color: #74c0fc;
+}
+.inv-slot.equipped {
+  background: #fff3bf;
+  border: 2px solid #f59f00;
+  border-style: solid;
+}
+.inv-slot.equipped:empty,
+.inv-slot.equipped .inv-slot-content { font-size: 22px; }
+.inv-slot-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #868e96;
+  margin-bottom: 4px;
+}
+.inv-slot-content {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  min-height: 24px;
+}
+
+/* --- Games menu (picker of available minigames) --- */
+.games-menu-card { max-height: 92vh; }
+.games-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 12px;
+}
+@media (max-width: 380px) {
+  .games-menu-grid { grid-template-columns: 1fr; }
+}
+.game-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 12px;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s;
+  font: inherit;
+  color: inherit;
+}
+.game-tile:hover  { border-color: #4dabf7; box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+.game-tile:active { transform: scale(0.97); }
+.game-tile-emoji  { font-size: 48px; line-height: 1; }
+.game-tile-title  {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1971c2;
+  text-align: center;
+}
+.game-tile-rate {
+  font-size: 12px;
+  color: #868e96;
+  text-align: center;
+}
+.games-menu-cap {
+  text-align: center;
+  font-size: 13px;
+  color: #868e96;
+  margin: 12px 0 0;
+}
+.games-menu-cap strong {
+  color: #5c3c00;
+  font-weight: 700;
+}
+
+/* --- Shop modal --- */
+.shop-card { max-height: 92vh; }
+.shop-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+.shop-tab {
+  flex: 1;
+  padding: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  color: #495057;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.shop-tab.active {
+  background: white;
+  color: #1971c2;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.shop-tab:hover:not(.active) { background: rgba(255,255,255,0.4); }
+
+.shop-body {
+  background: rgba(255,255,255,0.4);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 360px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+.shop-card-item,
+.inv-card {
+  background: white;
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+.shop-card-item .item-emoji,
+.inv-card .item-emoji {
+  font-size: 36px;
+  line-height: 1.1;
+}
+.shop-card-item .item-name,
+.inv-card .item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #343a40;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shop-card-item .item-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #5c3c00;
+}
+.shop-card-item .buy-btn,
+.inv-card .act-btn {
+  width: 100%;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  background: var(--good);
+  transition: background 0.15s, transform 0.1s;
+}
+.shop-card-item .buy-btn:hover,
+.inv-card .act-btn:hover { background: #2f9e44; }
+.shop-card-item .buy-btn:active,
+.inv-card .act-btn:active { transform: scale(0.97); }
+.shop-card-item .buy-btn:disabled,
+.inv-card .act-btn:disabled { background: #adb5bd; cursor: not-allowed; }
+
+.inv-card .act-btn.unequip { background: #868e96; }
+.inv-card .act-btn.unequip:hover { background: #495057; }
+.inv-card .act-btn.equip { background: #4dabf7; }
+.inv-card .act-btn.equip:hover { background: #339af0; }
+.inv-card .act-btn.eat { background: #fd7e14; }
+.inv-card .act-btn.eat:hover { background: #e8590c; }
+.inv-card .equipped-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f59f00;
+  letter-spacing: 0.5px;
+}
+.inv-empty {
+  text-align: center;
+  color: #868e96;
+  padding: 32px 12px;
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* Bob sprite cosmetic overlay (set via JS) */
+.bob-cosmetics {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.bob-cosmetics > span {
+  position: absolute;
+  font-size: 28px;
+  line-height: 1;
+}
+.bob-cosmetics > .slot-hat  { top: -4px;  left: 50%; transform: translateX(-50%); }
+.bob-cosmetics > .slot-side { top: 30%;   right: -2px; }
+
