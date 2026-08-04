@@ -32,7 +32,9 @@ setInterval(() => savePet(pet), 5000);
 // Save on tab close
 window.addEventListener('beforeunload', () => savePet(pet));
 
-// Slow passive HP drain: 1 HP every 0.6 real minutes (= 36 seconds) while Bob is alive.
+// Slow passive HP drain: 1 HP every 6 real minutes while Bob is alive.
+// (Was 1 / 36s in the 4-minute lifetime build, tuned for ~10 hits per run.
+// 6 minutes keeps the same ~10 hits across a 1-hour lifetime.)
 setInterval(() => {
   if (!pet.alive) return;
   pet.stats.health = Math.max(0, pet.stats.health - 1);
@@ -42,7 +44,7 @@ setInterval(() => {
   }
   savePet(pet);
   render(pet);
-}, 36 * 1000);
+}, 6 * 60 * 1000);
 
 // --- Games menu ---
 //
