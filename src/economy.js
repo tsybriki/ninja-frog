@@ -44,33 +44,88 @@ export function findItem(id) {
 
 // --- Coin earning from minigames -----------------------------------------
 
-// 1 whole coin per this many flies caught. Keep in sync with the shop
-// prices in CATALOG so a single minigame run can plausibly buy something.
-export const FLIES_PER_COIN = 50;
+// Each minigame activity maps to `coinActivity(pet, n)` -> a unitless integer
+// (e.g. flies caught, shots landed). We then convert that into whole coins
+// at the end of a session via `flushCoins()`. Balances live in one place
+// so changing them in the future means editing two numbers.
 
-// Increments the fractional coin counter. Coins are NOT credited to pet.coins
-// until `flushCoins()` is called (typically when the minigame closes) — that
-// way a player can close mid-run without losing partial progress and we get
-// one clean "you earned X" message at the end.
+// Activity -> coins.
+//   flies  = flies caught
+//   shots  = shots landed (hits in the targets minigame)
+export const RATES = {
+  flies: { perCoin: 25, coinsPerUnit: 1 / 25 }, // 1 coin per 25 flies
+  shots: { perCoin: 15, coinsPerUnit: 2 / 15 }, // 2 coins per 15 shots landed
+};
+
+// Hard cap on coins earned in a single minigame session. Once pet.coinsFraction
+// (or the shots tracker) would push the total above this, the minigame shuts
+// itself down with a "лимит" alert. This keeps farming bounded and gives
+// the next run some meaning.
+export const SESSION_COIN_CAP = 100;
+
+// Increment the fractional coin counter from a "flies caught" source.
+// Returns { coinsEarned (this call), coinsTotal } — coinsEarned is 0 until flush.
 export function addFlies(pet, count) {
   if (!pet || !pet.alive) return { coinsEarned: 0, coinsTotal: pet ? pet.coins : 0 };
   if (!Number.isFinite(count) || count <= 0) {
     return { coinsEarned: 0, coinsTotal: pet.coins };
   }
-  pet.coinsFraction += count / FLIES_PER_COIN;
+  pet.coinsFraction += count * RATES.flies.coinsPerUnit;
   return { coinsEarned: 0, coinsTotal: pet.coins };
+}
+
+// Increment from "shots landed" source. Identical to addFlies, just a
+// different rate. Kept separate so minigame code reads as intent.
+export function addShots(pet, count) {
+  if (!pet || !pet.alive) return { coinsEarned: 0, coinsTotal: pet ? pet.coins : 0 };
+  if (!Number.isFinite(count) || count <= 0) {
+    return { coinsEarned: 0, coinsTotal: pet.coins };
+  }
+  pet.coinsFraction += count * RATES.shots.coinsPerUnit;
+  return { coinsEarned: 0, coinsTotal: pet.coins };
+}
+
+// How many whole coins the player would earn if they closed the minigame
+// right now (without flushing). Useful for UI ("🪙 37 / 100").
+export function pendingCoins(pet) {
+  if (!pet) return 0;
+  return Math.floor(pet.coinsFraction || 0);
+}
+
+// Total coins already credited to the wallet this session + pending.
+// Used by the minigame to enforce the cap.
+export function wouldEarnOnClose(pet) {
+  if (!pet) return 0;
+  return Math.floor((pet.coins || 0) + Math.floor(pet.coinsFraction || 0));
 }
 
 // Move fractional coins → whole coins. Returns the integer just credited.
 // Safe to call multiple times — only the integer part is flushed each call.
+//
+// Honours the per-session cap: we will NOT credit coins that would push the
+// pet above SESSION_COIN_CAP *within* a session. Anything past the cap is
+// silently kept in `coinsFraction` for the next session. (Players can still
+// farm past the cap across sessions, which is intentional: the cap bounds
+// a single minigame run, not lifetime earnings.)
+//
+// FP safety: 15 shots at rate 2/15 should give exactly 2 coins, but
+// 15*(2/15) = 1.9999999... in IEEE 754. We add a tiny epsilon (1e-9) so
+// `Math.floor` doesn't truncate a legitimate result. The epsilon is below
+// any meaningful activity rate, so it can never push the floor UP by 1
+// incorrectly.
+const FP_EPSILON = 1e-9;
 export function flushCoins(pet) {
   if (!pet) return 0;
   if (!Number.isFinite(pet.coinsFraction)) pet.coinsFraction = 0;
-  const earned = Math.floor(pet.coinsFraction);
+  let earned = Math.floor(pet.coinsFraction + FP_EPSILON);
   if (earned > 0) {
-    pet.coins      = (pet.coins || 0) + earned;
-    pet.coinsFraction -= earned;
-    if (pet.coinsFraction < 0) pet.coinsFraction = 0;
+    const room = Math.max(0, SESSION_COIN_CAP - (pet.coins || 0));
+    if (earned > room) earned = room;
+    if (earned > 0) {
+      pet.coins      = (pet.coins || 0) + earned;
+      pet.coinsFraction -= earned;
+      if (pet.coinsFraction < 0) pet.coinsFraction = 0;
+    }
   }
   return earned;
 }

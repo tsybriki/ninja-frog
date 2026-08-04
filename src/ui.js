@@ -33,6 +33,28 @@ export function showSicknessIndicator(stat, amount) {
   setTimeout(() => indicator.remove(), 1300);
 }
 
+/**
+ * Show a floating "❤️ +N" indicator after petting Bob. Same DOM recipe as
+ * showSicknessIndicator but positive and rendered in green.
+ */
+export function showPetIndicator() {
+  const sprite = document.getElementById('bob-sprite');
+  if (!sprite) return;
+  const indicator = document.createElement('div');
+  indicator.className = 'pet-indicator';
+  indicator.textContent = '❤️ +18';
+  indicator.style.position = 'absolute';
+  indicator.style.left = '50%';
+  indicator.style.top = '0';
+  indicator.style.transform = 'translate(-50%, -10px)';
+  const parent = sprite.parentElement;
+  if (parent && getComputedStyle(parent).position === 'static') {
+    parent.style.position = 'relative';
+  }
+  parent.appendChild(indicator);
+  setTimeout(() => indicator.remove(), 1300);
+}
+
 export function render(pet) {
   if (!pet.alive) {
     showGameOver(pet);
@@ -71,6 +93,8 @@ export function render(pet) {
   document.getElementById('btn-feed').disabled     = dead;
   document.getElementById('btn-sleep').disabled    = dead;
   document.getElementById('btn-play').disabled     = dead;
+  document.getElementById('btn-pet').disabled      = dead;
+  document.getElementById('btn-shoot').disabled    = dead;
   document.getElementById('btn-shop').disabled     = dead;
 }
 
@@ -208,5 +232,7 @@ export function bindActions(handlers) {
   document.getElementById('btn-feed').addEventListener('click', handlers.feed);
   document.getElementById('btn-sleep').addEventListener('click', handlers.sleep);
   document.getElementById('btn-play').addEventListener('click', handlers.play);
+  document.getElementById('btn-pet').addEventListener('click', handlers.pet);
+  document.getElementById('btn-shoot').addEventListener('click', handlers.shoot);
   document.getElementById('btn-new-game').addEventListener('click', handlers.newGame);
 }
