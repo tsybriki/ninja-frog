@@ -610,7 +610,7 @@ button:disabled {
 
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 10px;
 }
 .shop-card-item,
@@ -648,7 +648,7 @@ button:disabled {
 .shop-card-item .buy-btn,
 .inv-card .act-btn {
   width: 100%;
-  padding: 8px;
+  padding: 8px 6px;
   font-size: 13px;
   font-weight: 600;
   border: none;
@@ -657,6 +657,14 @@ button:disabled {
   color: white;
   background: var(--good);
   transition: background 0.15s, transform 0.1s;
+  /* Prevent text-clipping that turns "Купить" into "ЦЫ" on narrow cards */
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  /* Belt-and-suspenders font stack: webfont → system font with Cyrillic glyphs */
+  font-family: 'Noto Sans', 'Segoe UI', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 .shop-card-item .buy-btn:hover,
 .inv-card .act-btn:hover { background: #2f9e44; }
