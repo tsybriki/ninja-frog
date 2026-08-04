@@ -119,8 +119,9 @@ h1 {
   font-size: 80px;
   line-height: 1;
   transition: transform 0.2s;
-  position: relative;
   display: inline-block;
+  position: relative;
+  min-height: 180px;
 }
 /* Emoji sprite (default). If you ever want to swap in a real photo/PDF,
    replace the markup in index.html with an <img class="bob-image"> and the
@@ -130,11 +131,17 @@ h1 {
   display: inline-block;
 }
 .bob-image {
-  width: 180px;
+  /* PNG sprite (transparent silhouette). Width-driven, keeps aspect ratio
+     (256x554 portrait). CSS adjusts for narrow screens via max-width. */
+  width: auto;
   height: 180px;
+  max-width: 100%;
   display: block;
-  pointer-events: none;
+  margin: 0 auto;
   user-select: none;
+  pointer-events: none;
+  /* No background: alpha-channel transparent pixels stay transparent */
+  background: transparent;
 }
 
 .bob-sprite.happy { animation: wiggle 1s ease-in-out infinite; }
