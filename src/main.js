@@ -1,11 +1,12 @@
 // src/main.js — bootstrap the game
 
-import { createPet, tick, feed, sleep, play } from './pet.js';
+import { createPet, tick, feed, sleep, play, pet_ } from './pet.js';
 import { render, bindActions } from './ui.js';
 import { savePet, loadPet, clearPet } from './storage.js';
 import { openMinigame } from './minigames.js';
 import { createFliesGame } from './minigame-flies.js';
-import { flushCoins } from './economy.js';
+import { createTargetsGame } from './minigame-targets.js';
+import { flushCoins, pendingCoins, wouldEarnOnClose, SESSION_COIN_CAP } from './economy.js';
 import { openShop, closeShop, bindShop } from './shop.js';
 
 let pet = loadPet();
@@ -44,7 +45,7 @@ setInterval(() => {
 }, 36 * 1000);
 
 // Open the "Catch the Flies" minigame.
-// Flies are now a coin-farming minigame: 1 coin per 50 caught, no HP drain.
+// Flies are now a coin-farming minigame: 1 coin per 25 caught, no HP drain.
 function openFliesGame() {
   const game = createFliesGame(
     null, // onScoreChange (unused)
@@ -69,8 +70,41 @@ function openFliesGame() {
 
       const coinLine = earned > 0
         ? `🪙 +${earned} монета${earned === 1 ? '' : earned < 5 ? 'ы' : '!'}. Баланс: ${total}.`
-        : `Пока 0 монет (нужно 50 мух = 1 🪙).`;
+        : `Пока 0 монет (нужно 25 мух = 1 🪙).`;
       alert(`🪰 Поймано мух: ${score}\n${coinLine}`);
+    },
+  });
+}
+
+// Open the "Shooting Gallery" minigame.
+// Targets pop up; each one shot = 2 coins per 15 hits (cap 100 / session).
+function openTargetsGame() {
+  const game = createTargetsGame(null, null);
+  game.setPet(pet);
+
+  openMinigame({
+    title: '🎯 Shooting Gallery',
+    container: game.container,
+    startGameFn: {
+      start: () => game.start(),
+      stop:  () => game.stop(),
+    },
+    onFinish: (stats) => {
+      const earned = flushCoins(pet);
+      const total  = pet.coins || 0;
+      savePet(pet);
+      render(pet);
+
+      // `stats` may be undefined if the modal's close button was used.
+      const hits = (stats && stats.shots) || 0;
+      let reasonLine = '';
+      if (stats && stats.reason === 'cap') reasonLine = '\n🏁 Лимит 100 монет за сессию достигнут.';
+      else if (stats && stats.reason === 'time') reasonLine = '\n⏱ Время вышло.';
+
+      const coinLine = earned > 0
+        ? `🪙 +${earned} (15 попаданий = 2 монеты). Баланс: ${total}.`
+        : `Пока 0 монет (нужно 15 попаданий = 2 🪙).`;
+      alert(`🎯 Попаданий: ${hits}${reasonLine}\n${coinLine}`);
     },
   });
 }
@@ -129,6 +163,17 @@ bindActions({
   feed: () => { feed(pet); render(pet); },
   sleep: () => { sleep(pet); render(pet); },
   play: () => { openFliesGame(); },
+  pet: () => {
+    pet_(pet);
+    // Show a floating "+18 ❤️" indicator over Bob so the player sees the
+    // happiness bump. We import lazily to avoid a circular import (ui.js
+    // doesn't depend on pet.js for the floating helpers).
+    import('./ui.js').then(({ showPetIndicator }) => {
+      showPetIndicator();
+    });
+    render(pet);
+  },
+  shoot: () => { openTargetsGame(); },
   newGame: () => {
     if (!confirm('Начать новую игру? Монеты и инвентарь сбросятся.')) return;
     clearPet();

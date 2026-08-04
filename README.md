@@ -9,9 +9,17 @@ A virtual pet game in your browser. Take care of Bob the shrimp — feed him, pl
 - 🍤 **Feed** — lowers Bob's hunger
 - 😴 **Sleep** — lowers Bob's fatigue (costs 1 game-hour)
 - 🎾 **Play** — opens "Catch the Flies" minigame (catches earn 🪙 coins)
+- 🤚 **Pet** — scratch Bob gently (+18 happiness, +3 fatigue, no aging)
+- 🎯 **Shoot** — opens "Shooting Gallery": pop targets, +2 🪙 per 15 hits
 - 🛒 **Shop** — buy toys, jewelry, and treats. Equip cosmetics, eat food for stat boosts.
 
 Keep all four stats (health, hunger, fatigue, happiness) in the green zone, and Bob will live a full life of 100 game-hours.
+
+## Earnings
+
+- 🪰 Flies: **1 coin per 25 caught**
+- 🎯 Targets: **2 coins per 15 hit**
+- ⛔ Per-minigame session cap: **100 coins** (game ends itself when reached)
 
 ## Project info
 
