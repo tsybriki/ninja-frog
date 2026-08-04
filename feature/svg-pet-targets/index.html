@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bob the Shrimp 🦐</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app">
+    <header>
+      <h1>🦐 Bob the Shrimp</h1>
+      <p class="age">Age: <span id="age">0</span>h / 100h</p>
+    </header>
+
+    <section class="bob-container">
+      <div class="bob-sprite" id="bob-sprite"><img src="assets/bob.svg" alt="Bob the Shrimp" class="bob-image" /></div>
+      <p class="status" id="status">Bob is happy!</p>
+    </section>
+
+    <section class="stats">
+      <div class="stat">
+        <label>❤️ Health <span id="health-val">100</span></label>
+        <div class="bar"><div class="fill health" id="health-bar"></div></div>
+      </div>
+      <div class="stat">
+        <label>🍤 Hunger <span id="hunger-val">0</span></label>
+        <div class="bar"><div class="fill hunger" id="hunger-bar"></div></div>
+      </div>
+      <div class="stat">
+        <label>😴 Fatigue <span id="fatigue-val">0</span></label>
+        <div class="bar"><div class="fill fatigue" id="fatigue-bar"></div></div>
+      </div>
+      <div class="stat">
+        <label>🎾 Happiness <span id="happiness-val">100</span></label>
+        <div class="bar"><div class="fill happiness" id="happiness-bar"></div></div>
+      </div>
+    </section>
+
+    <section class="actions">
+      <button id="btn-feed">🍤 Feed</button>
+      <button id="btn-sleep">😴 Sleep</button>
+      <button id="btn-play">🎾 Play</button>
+      <button id="btn-pet">🤚 Pet</button>
+      <button id="btn-shoot">🎯 Shoot</button>
+    </section>
+
+    <section class="economy-bar">
+      <div class="coins-pill" title="Bob's pocket money">
+        <span class="coins-emoji">🪙</span>
+        <span id="coins-val">0</span>
+      </div>
+      <button id="btn-shop" class="shop-btn">🛒 Магазин</button>
+    </section>
+
+    <section class="inventory-strip" id="inventory-strip" aria-label="Инвентарь">
+      <!-- Equipped cosmetic -->
+      <div class="inv-slot equipped" id="inv-equipped-slot" title="Надето на Бобе">
+        <span class="inv-slot-label">Надето</span>
+        <span class="inv-slot-content" id="inv-equipped-content">—</span>
+      </div>
+      <div class="inv-slot" id="inv-toys-slot" title="Игрушки (открыть магазин)">
+        <span class="inv-slot-label">Игрушки</span>
+        <span class="inv-slot-content" id="inv-toys-content">0</span>
+      </div>
+      <div class="inv-slot" id="inv-food-slot" title="Еда в инвентаре">
+        <span class="inv-slot-label">Еда</span>
+        <span class="inv-slot-content" id="inv-food-content">0</span>
+      </div>
+    </section>
+
+    <section class="game-over hidden" id="game-over">
+      <h2 id="game-over-title">Game Over</h2>
+      <p id="game-over-text">Bob lived a full life.</p>
+      <button id="btn-new-game">New Game</button>
+    </section>
+
+    <section class="minigame-overlay hidden" id="minigame-overlay">
+      <div class="minigame-card">
+        <div class="minigame-header">
+          <h2 id="minigame-title">Mini-game</h2>
+          <div class="minigame-timer" id="minigame-timer">2:00</div>
+        </div>
+        <div id="minigame-body" class="minigame-body"></div>
+        <div class="minigame-footer">
+          <button id="minigame-start" class="minigame-btn primary">Start</button>
+          <button id="minigame-close" class="minigame-btn">Close</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="minigame-overlay hidden" id="shop-overlay">
+      <div class="minigame-card shop-card">
+        <div class="minigame-header">
+          <h2>🛒 Магазин Боба</h2>
+          <div class="coins-pill small" title="Баланс">
+            <span class="coins-emoji">🪙</span><span id="shop-coins">0</span>
+          </div>
+        </div>
+
+        <div class="shop-tabs">
+          <button class="shop-tab active" data-tab="buy">Купить</button>
+          <button class="shop-tab" data-tab="inv">Инвентарь</button>
+        </div>
+
+        <div id="shop-body" class="shop-body"></div>
+
+        <div class="minigame-footer">
+          <button id="shop-close" class="minigame-btn">Закрыть</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
