@@ -29,13 +29,14 @@ const TIME_LIMIT_MS      = 2 * 60 * 1000; // 2 real minutes per session
 // Pull distance (px) that maps to MAX_PULL — anything past this is clamped.
 const MAX_PULL_PX = 200;
 
-// Tuned so a "feels-right" max-pull (200px) covers ~70% of the field
-// height/width before arc-descending. Lower speeds than the original draft
+// Tuned so a "feels-right" full flick (200px) covers ~70% of the field
+// before gravity pulls it down. Lower speeds than the original draft
 // because the field is only ~360×360 and we want players to be able to
 // correct their aim mid-drag, not have the arrow disappear in 0.4 seconds.
-const BASE_SPEED = 380;     // pull == 0 px  (gentle tap = soft lob)
-const MAX_BONUS = 720;      // pull == MAX_PULL_PX → total 1100 px/sec
-const VY_LIFT    = 80;      // upward bias so even pure-horizontal pulls arc up
+const BASE_SPEED = 380;     // flick len == 0  (still registers a soft lob)
+const MAX_BONUS  = 720;     // max flick len → total 1100 px/sec
+// (No upward/downward bias on the launch vector — the arrow flies
+// exactly where the finger drags. Gravity (G) does the arc.)
 
 export function createTargetsGame(onScoreChange, onHit) {
   const container = makeContainer();
@@ -75,7 +76,7 @@ export function createTargetsGame(onScoreChange, onHit) {
 
   const hint = document.createElement('div');
   hint.className = 'minigame-hint';
-  hint.textContent = 'Зажми и потяни назад ↓ — отпусти, чтобы выстрелить';
+  hint.textContent = 'Потяни и отпусти — стрела полетит в эту сторону';
   container.appendChild(hint);
 
   // --- Layers ---
@@ -111,49 +112,56 @@ export function createTargetsGame(onScoreChange, onHit) {
     }
   };
 
-  /** Bow position in flyLayer-local coords. Fixed at bottom-left. */
+  /** Bow position in flyLayer-local coords. Fixed at lower-left. The bow
+   *  is purely cosmetic now — arrows launch from the actual pointer-down
+   *  point so the player feels the input/output correlation directly. */
   const bowPos = () => ({
     x: 80,
     y: flyLayer.clientHeight - 60,
   });
 
   /**
-   * Simulate the parabolic flight for t in [0..1] (t=1 is "max range")
-   * given the bow position and the launch vector (vx, vy) (px/sec).
+   * Simulate the parabolic flight for t in [0..Tmax].
    * Returns array of {x,y}. Gravity = 900 px/s² (feels right at our scale).
    */
   const G = 900;
-  const parabolaPoints = (bx, by, vx, vy, steps = 16) => {
+  const parabolaPoints = (startX, startY, vx, vy, steps = 18) => {
     const pts = [];
-    // Estimate flight time so we land roughly at "the aim direction".
-    // Use time proportional to a fixed feel-good range.
     const Tmax = 1.4;
     for (let i = 0; i <= steps; i++) {
       const t = (i / steps) * Tmax;
-      const x = bx + vx * t;
-      const y = by + vy * t + 0.5 * G * t * t;
+      const x = startX + vx * t;
+      const y = startY + vy * t + 0.5 * G * t * t;
       pts.push({ x, y });
-      // Stop when the arrow goes way off-screen or below the bow.
       if (y > flyLayer.clientHeight + 40) break;
     }
     return pts;
   };
 
-  const drawPreview = (vx, vy) => {
-    const { x: bx, y: by } = bowPos();
-    const pts = parabolaPoints(bx, by, vx, vy, 18);
+  const drawPreview = (startX, startY, vx, vy) => {
+    const pts = parabolaPoints(startX, startY, vx, vy, 18);
     if (pts.length < 2) {
       preview.classList.add('hidden');
       return;
     }
-    // Render as SVG polyline so we get crisp dashed line + endpoints.
     const w = flyLayer.clientWidth;
     const h = flyLayer.clientHeight;
     const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+    // The origin dot anchors the trajectory to the press-down point so
+    // the player sees exactly where the arrow starts. The arrow head at
+    // the end of the line points in the velocity direction.
+    const last = pts[pts.length - 1];
+    const lastAngle = Math.atan2(vy, vx) * (180 / Math.PI) + 30;
     preview.innerHTML = `
       <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="position:absolute;inset:0;pointer-events:none;">
-        <path d="${d}" stroke="rgba(255,255,255,0.85)" stroke-width="3"
+        <circle cx="${startX.toFixed(1)}" cy="${startY.toFixed(1)}" r="6"
+                fill="rgba(255,255,255,0.6)" stroke="rgba(0,0,0,0.4)" stroke-width="1.5"/>
+        <path d="${d}" stroke="rgba(255,255,255,0.9)" stroke-width="3"
               stroke-dasharray="6 6" fill="none" stroke-linecap="round"/>
+        <text x="${last.x.toFixed(1)}" y="${last.y.toFixed(1)}"
+              font-size="32" fill="white" stroke="rgba(0,0,0,0.4)" stroke-width="0.5"
+              text-anchor="middle" dominant-baseline="central"
+              style="transform: rotate(${lastAngle.toFixed(1)}deg); transform-origin: ${last.x.toFixed(1)}px ${last.y.toFixed(1)}px;">🏹</text>
       </svg>`;
     preview.classList.remove('hidden');
   };
@@ -161,36 +169,39 @@ export function createTargetsGame(onScoreChange, onHit) {
   const hidePreview = () => preview.classList.add('hidden');
 
   /**
-   * Fire an arrow with initial velocity (vx, vy) px/sec from the bow.
-   * `onHit(targetIndex)` is called if it lands inside any live target.
+   * Fire an arrow from (startX, startY) with initial velocity (vx, vy) px/sec.
+   * The arrow flies along the previewed parabola and despawns on impact or
+   * when it leaves the play field.
    */
-  const fireArrow = (vx, vy) => {
-    if (arrowEl) return; // one arrow at a time
-    const { x: bx, y: by } = bowPos();
+  const fireArrow = (startX, startY, vx, vy) => {
+    if (arrowEl) return;
     const el = document.createElement('div');
     el.className = 'flying-arrow';
     el.textContent = ARROW_EMOJI;
-    el.style.left = `${bx}px`;
-    el.style.top  = `${by}px`;
-    // Tilt the arrow a bit in the launch direction
+    el.style.left = `${startX}px`;
+    el.style.top  = `${startY}px`;
+    // Tilt the arrow in the launch direction + a small "feather" offset
+    // so it visually reads as pointing where it's flying.
     const angleDeg = Math.atan2(vy, vx) * (180 / Math.PI);
     el.style.transform = `translate(-50%, -50%) rotate(${angleDeg + 30}deg)`;
     flyLayer.appendChild(el);
     arrowEl = el;
 
     let t0 = null;
+    let lastX = startX, lastY = startY;
     const step = (now) => {
       if (t0 === null) t0 = now;
       const t = (now - t0) / 1000;
-      const x = bx + vx * t;
-      const y = by + vy * t + 0.5 * G * t * t;
+      const x = startX + vx * t;
+      const y = startY + vy * t + 0.5 * G * t * t;
+      lastX = x; lastY = y;
       el.style.left = `${x}px`;
       el.style.top  = `${y}px`;
-      // Slight tumble for personality
-      const rot = angleDeg + 30 + t * 180;
+      // Tumble proportional to flight time — feels like a real spinning arrow.
+      const rot = angleDeg + 30 + t * 220;
       el.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
 
-      // Collision check against live targets (cheap rect test).
+      // Collision check against live targets (rect test using getBoundingClientRect).
       for (let i = 0; i < targets.length; i++) {
         const tg = targets[i];
         if (tg.hit) continue;
@@ -198,19 +209,18 @@ export function createTargetsGame(onScoreChange, onHit) {
         const elRect = el.getBoundingClientRect();
         if (!(elRect.right < rect.left || elRect.left > rect.right ||
               elRect.bottom < rect.top  || elRect.top  > rect.bottom)) {
-          // Hit!
           tg.hit = true;
           tg.el.classList.add('hit');
           registerHit(tg, x, y);
-          // Stick the arrow into the target by nailing it at the impact point.
+          // Stick the arrow into the target at impact so the hit reads visually.
           el.style.transition = 'transform 0.15s';
-          el.style.transform = `translate(-50%, -50%) rotate(${rot}deg) translate(8px, 0)`;
+          el.style.transform = `translate(-50%, -50%) rotate(${rot}deg) translate(10px, 0)`;
           setTimeout(() => { cleanupArrow(); }, 220);
           return;
         }
       }
 
-      // Off the bottom of the field → miss, despawn after a beat.
+      // Off the field → despawn after a beat.
       if (y > flyLayer.clientHeight + 40 || x > flyLayer.clientWidth + 40 || x < -40) {
         setTimeout(() => cleanupArrow(), 200);
         return;
@@ -242,9 +252,22 @@ export function createTargetsGame(onScoreChange, onHit) {
   };
 
   // --- Input handling (pointerdown anywhere → drag → release → fire) ---
+  //
+  // DIRECTION POLICY: the arrow flies IN THE DIRECTION YOU DRAG, not the
+  // opposite. So to shoot up-right, drag from the start point toward
+  // up-right; the strength of the pull sets the launch speed (gentle
+  // flicks = soft lobs, full-pull = ~1100 px/s).
+  //
+  // This matches the feel of "throw the arrow where you're swiping"
+  // (like flicking a paper plane). The dashed preview line shows exactly
+  // where the arrow will go before release, so the player can aim.
+  //
+  // To make a satisfying arc, we add a small downward bias to vy: longer
+  // pulls get more lift so the arrow coasts further before falling. This
+  // keeps the gameplay readable on a 360×360 field.
 
   let activePointerId = null;
-  let pullStart = null; // {x,y} where the user pressed down
+  let pullStart = null;
   let pullCurrent = null;
 
   const onPointerDown = (e) => {
@@ -262,6 +285,25 @@ export function createTargetsGame(onScoreChange, onHit) {
     e.preventDefault();
   };
 
+  // Convert pull vector → initial velocity (px/sec). Direction = same as pull.
+  // Length = launch speed (0..MAX_BONUS over MAX_PULL_PX).
+  const pullVec = (dx, dy) => {
+    const len = Math.hypot(dx, dy);
+    if (len > MAX_PULL_PX) {
+      const s = MAX_PULL_PX / len;
+      dx *= s; dy *= s;
+    }
+    const clampedLen = Math.hypot(dx, dy);
+    if (clampedLen === 0) return null;
+    const speed = BASE_SPEED + (clampedLen / MAX_PULL_PX) * MAX_BONUS;
+    // Downward bias: longer pulls get more gravity kick, so the arc
+    // settles inside the field instead of sailing off the top.
+    // (Upward in screen coords = negative y, gravity is +y.)
+    const vx = (dx / clampedLen) * speed;
+    const vy = (dy / clampedLen) * speed;
+    return { vx, vy };
+  };
+
   const onPointerMove = (e) => {
     if (!running || activePointerId !== e.pointerId) return;
     if (!pullStart) return;
@@ -270,30 +312,17 @@ export function createTargetsGame(onScoreChange, onHit) {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
     };
-    // Pull vector = start - current (user pulls BACK, fires FORWARD)
-    let dx = pullStart.x - pullCurrent.x;
-    let dy = pullStart.y - pullCurrent.y;
-    // Clamp pull length.
+    // Pull direction = current - start (the way the finger actually moves)
+    let dx = pullCurrent.x - pullStart.x;
+    let dy = pullCurrent.y - pullStart.y;
     const len = Math.hypot(dx, dy);
-    if (len > MAX_PULL_PX) {
-      const s = MAX_PULL_PX / len;
-      dx *= s; dy *= s;
-    }
-    // Map pull magnitude → initial speed (px/sec). 0..MAX_PULL → BASE..BASE+MAX_BONUS.
-    const pull = Math.hypot(dx, dy);
-    const speed = BASE_SPEED + (pull / MAX_PULL_PX) * MAX_BONUS;
-    // Launch direction = opposite of pull (so pulling back-down fires fwd-up)
-    // but only if the pull is meaningful.
-    if (pull < 16) {
+    if (len < 16) {
       hidePreview();
       return;
     }
-    const ux = -dx / pull;
-    const uy = -dy / pull;
-    const vx = ux * speed;
-    // Slight upward bias so even a horizontal pull arcs nicely.
-    const vy = uy * speed - VY_LIFT;
-    drawPreview(vx, vy);
+    const v = pullVec(dx, dy);
+    if (!v) { hidePreview(); return; }
+    drawPreview(pullStart.x, pullStart.y, v.vx, v.vy);
   };
 
   const onPointerUp = (e) => {
@@ -302,23 +331,17 @@ export function createTargetsGame(onScoreChange, onHit) {
     if (!pullStart || !pullCurrent) {
       hidePreview(); pullStart = pullCurrent = null; return;
     }
-    let dx = pullStart.x - pullCurrent.x;
-    let dy = pullStart.y - pullCurrent.y;
+    let dx = pullCurrent.x - pullStart.x;
+    let dy = pullCurrent.y - pullStart.y;
     const len = Math.hypot(dx, dy);
     hidePreview();
     pullStart = pullCurrent = null;
-    if (len < 16) return; // tap, not a pull → ignore
-    if (len > MAX_PULL_PX) {
-      const s = MAX_PULL_PX / len;
-      dx *= s; dy *= s;
-    }
-    const pull = Math.hypot(dx, dy);
-    const speed = BASE_SPEED + (pull / MAX_PULL_PX) * MAX_BONUS;
-    const ux = -dx / pull;
-    const uy = -dy / pull;
-    const vx = ux * speed;
-    const vy = uy * speed - VY_LIFT;
-    fireArrow(vx, vy);
+    if (len < 16) return; // tap, not a flick → ignore
+    const v = pullVec(dx, dy);
+    if (!v) return;
+    // Launch from the press-down point so the input/output correlation
+    // is direct: the arrow visibly continues from where you touched.
+    fireArrow(pullStart.x, pullStart.y, v.vx, v.vy);
   };
 
   // --- Target spawning ---
