@@ -1,8 +1,9 @@
 // src/minigame-flies.js — Catch the Flies!
 // Flies appear around Bob, tap/click to catch them.
-// No reward yet (per Oleg's request).
+// Each catch earns coins via economy.addFlies; total is flushed in onFinish.
 
 import { makeContainer } from './minigames.js';
+import { addFlies } from './economy.js';
 
 const FLY_EMOJI = '🪰';
 const FLY_LIFETIME_MS = 2500;   // how long a fly stays before it escapes
@@ -10,7 +11,7 @@ const SPAWN_MIN_MS = 400;
 const SPAWN_MAX_MS = 900;
 const CATCH_RADIUS_PX = 60;     // generous tap area
 
-export function createFliesGame(onScoreChange, onDamage) {
+export function createFliesGame(onScoreChange, onCoin) {
   const container = makeContainer();
   let score = 0;
   let running = false;
@@ -19,13 +20,24 @@ export function createFliesGame(onScoreChange, onDamage) {
   let flies = []; // {el, x, y, born, dx, dy}
   let raf = null;
   let bobEl = null;
-
-  let damageTimer = null;
+  // External pet reference set by main.js via start({ pet }).
+  // We keep it private so the function stays importable in isolation.
+  let petRef = null;
 
   const scoreEl = document.createElement('div');
   scoreEl.className = 'minigame-score';
   scoreEl.textContent = '🪰 0';
   container.appendChild(scoreEl);
+
+  // Pending fractional coins indicator — small, optional, helps players
+  // understand why 47 flies = no coin yet.
+  const pendingEl = document.createElement('div');
+  pendingEl.className = 'minigame-score';
+  pendingEl.style.top = '40px';
+  pendingEl.style.left = '8px';
+  pendingEl.style.background = 'rgba(255, 193, 7, 0.85)';
+  pendingEl.textContent = '🪙 0';
+  container.appendChild(pendingEl);
 
   const flyLayer = document.createElement('div');
   flyLayer.className = 'minigame-fly-layer';
@@ -90,6 +102,17 @@ export function createFliesGame(onScoreChange, onDamage) {
     score += 1;
     scoreEl.textContent = `🪰 ${score}`;
     onScoreChange && onScoreChange(score);
+
+    // Economy: each catch advances the fractional coin counter.
+    if (petRef && petRef.alive) {
+      const { coinsTotal } = addFlies(petRef, 1);
+      // Show the *floor* of the fractional counter so the player can see
+      // progress toward the next whole coin without giving a false sense
+      // of "un-earned" coins.
+      pendingEl.textContent = `🪙 ${Math.floor(petRef.coinsFraction || 0)} / 1`;
+      onCoin && onCoin({ score, coinsTotal });
+    }
+
     // Pop animation
     setTimeout(() => {
       fly.el.remove();
@@ -135,23 +158,24 @@ export function createFliesGame(onScoreChange, onDamage) {
 
   return {
     container,
+    // `setPet` lets main.js bind the live pet reference after creation.
+    // We do this lazily so the factory itself stays unit-testable without
+    // mocking localStorage.
+    setPet: (p) => { petRef = p; },
     start: () => {
       running = true;
       score = 0;
       scoreEl.textContent = '🪰 0';
+      pendingEl.textContent = '🪙 0 / 1';
       lastFrame = 0;
       scheduleNextSpawn();
       raf = requestAnimationFrame(animate);
-      // Drain 1 HP from Bob every 1.6 seconds while the minigame is running.
-      damageTimer = setInterval(() => {
-        if (running && onDamage) onDamage(1);
-      }, 1600);
+      // No more HP drain — flies are now a coin-farming minigame.
       return 0;
     },
     stop: () => {
       running = false;
       if (spawnTimer) { clearTimeout(spawnTimer); spawnTimer = null; }
-      if (damageTimer) { clearInterval(damageTimer); damageTimer = null; }
       if (raf) { cancelAnimationFrame(raf); raf = null; }
       flies.forEach(f => f.el.remove());
       flies = [];

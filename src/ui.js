@@ -1,6 +1,7 @@
 // src/ui.js — render Bob and handle button clicks
 
 import { MAX_AGE } from './pet.js';
+import { findItem } from './economy.js';
 
 /**
  * Show a floating "-N" over the pet sprite.
@@ -57,23 +58,112 @@ export function render(pet) {
 
   document.getElementById('age').textContent = Math.floor(pet.age);
 
+  // Coins + inventory
+  renderEconomy(pet);
+
   // Bob mood
+  renderSprite(pet);
+
+  document.getElementById('status').textContent = statusText(pet, lifePercent);
+
+  // Disable buttons when dead
+  const dead = !pet.alive;
+  document.getElementById('btn-feed').disabled     = dead;
+  document.getElementById('btn-sleep').disabled    = dead;
+  document.getElementById('btn-play').disabled     = dead;
+  document.getElementById('btn-shop').disabled     = dead;
+}
+
+/**
+ * Update the coins pill + inventory strip from `pet`. Idempotent: safe to
+ * call on every render tick.
+ */
+function renderEconomy(pet) {
+  const coinsEl = document.getElementById('coins-val');
+  if (coinsEl) coinsEl.textContent = Math.floor(pet.coins || 0);
+
+  // Inventory counts (live entries only)
+  const inv = Array.isArray(pet.inventory) ? pet.inventory : [];
+  const live = inv.filter((it) => !it.consumed);
+  const toys   = live.filter((it) => it.category === 'cosmetic');
+  const food   = live.filter((it) => it.category === 'food');
+
+  const toysEl = document.getElementById('inv-toys-content');
+  if (toysEl) toysEl.textContent = toys.length ? `${toys.length} 🎁` : '0';
+
+  const foodEl = document.getElementById('inv-food-content');
+  if (foodEl) foodEl.textContent = food.length ? `${food.length} 🍱` : '0';
+
+  // Equipped cosmetic slot
+  const eqContent = document.getElementById('inv-equipped-content');
+  const eqSlot    = document.getElementById('inv-equipped-slot');
+  if (eqContent && eqSlot) {
+    const eqId = pet.equipped && pet.equipped.cosmetic;
+    if (eqId) {
+      const item = findItem(eqId);
+      eqContent.textContent = item ? `${item.emoji} ${item.name}` : eqId;
+      eqSlot.classList.add('equipped-active');
+    } else {
+      eqContent.textContent = '—';
+      eqSlot.classList.remove('equipped-active');
+    }
+  }
+}
+
+/**
+ * Update Bob's sprite — handles mood (happy/sad/dead) and the cosmetic
+ * overlay (hat / side accessory). The overlay is a separate child element so
+ * we don't fight Bob's `wiggle` animation transforms.
+ */
+function renderSprite(pet) {
   const sprite = document.getElementById('bob-sprite');
+  if (!sprite) return;
+
   sprite.classList.remove('happy', 'sad', 'dead');
+
+  const { hunger, fatigue, happiness } = pet.stats;
+  const lifeHours = Math.max(0, MAX_AGE - pet.age);
+  const lifePercent = (lifeHours / MAX_AGE) * 100;
+
   if (hunger > 70 || fatigue > 70 || happiness < 30 || lifePercent < 50) {
     sprite.classList.add('sad');
   } else {
     sprite.classList.add('happy');
   }
 
-  document.getElementById('status').textContent = statusText(pet, lifePercent);
-
-  // Disable buttons when dead
-  const dead = !pet.alive;
-  document.getElementById('btn-feed').disabled = dead;
-  document.getElementById('btn-sleep').disabled = dead;
-  document.getElementById('btn-play').disabled = dead;
+  // Cosmetic overlay (absolute-positioned emoji on top of Bob)
+  // Lazy-create the wrapper so we don't edit index.html or the markup gets
+  // nuked by innerHTML elsewhere.
+  let overlay = sprite.querySelector('.bob-cosmetics');
+  const eqId = pet.equipped && pet.equipped.cosmetic;
+  if (eqId) {
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'bob-cosmetics';
+      sprite.appendChild(overlay);
+    }
+    const item = findItem(eqId);
+    if (item) {
+      // Each cosmetic has a fixed slot declared in CATALOG_COMPAT (below).
+      // For now: head items go to .slot-hat, side items go to .slot-side.
+      const slot = COSMETIC_SLOTS[item.id] || 'slot-hat';
+      overlay.innerHTML = `<span class="${slot}">${item.emoji}</span>`;
+    }
+  } else if (overlay) {
+    overlay.innerHTML = '';
+  }
 }
+
+// Map cosmetic item id -> which CSS slot to render in.
+// Hat-top: crown. Side: bow, ball, octopus (decoration hanging off Bob).
+const COSMETIC_SLOTS = {
+  crown:        'slot-hat',
+  bow:          'slot-side',
+  toy_ball:     'slot-side',
+  toy_octopus:  'slot-side',
+};
+
+
 
 function statusText(pet, lifePercent) {
   const { hunger, fatigue, happiness } = pet.stats;

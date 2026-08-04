@@ -69,3 +69,12 @@ Implemented via `Date.now()` deltas, not `setInterval` ticks — so it works cor
 - Sound / music
 - Multiple pet types
 - Mobile-optimized (desktop-first; should still work on mobile)
+
+## Economy (added in v2, ~2026)
+
+- **Coins** earned by playing "Catch the Flies": 1 🪙 per 50 caught (flushed on close).
+- **Shop** with 7 items across two categories:
+  - **Cosmetics** (equip, +1 happiness/hr passive while worn): 🎾 Шарик (10), 🧸 Осьминог (30), 👑 Корона (60), 🎀 Бабочка (35)
+  - **Food** (eat for one-shot stat effects): 🍰 Торт (10, -20 hunger / +10 happiness), 🥩 Стейк (5, -10 hunger), 🍖 Пир (100, -40 hunger / +25 happiness)
+- **Inventory strip** under the action buttons: equipped slot + count of cosmetics + count of food.
+- Save migrated automatically from v1 (no `coins` field → `0`, no `inventory` → `[]`).
