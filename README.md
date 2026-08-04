@@ -8,7 +8,8 @@ A virtual pet game in your browser. Take care of Bob the shrimp — feed him, pl
 
 - 🍤 **Feed** — lowers Bob's hunger
 - 😴 **Sleep** — lowers Bob's fatigue (costs 1 game-hour)
-- 🎾 **Play** — raises Bob's happiness (costs 1 game-hour)
+- 🎾 **Play** — opens "Catch the Flies" minigame (catches earn 🪙 coins)
+- 🛒 **Shop** — buy toys, jewelry, and treats. Equip cosmetics, eat food for stat boosts.
 
 Keep all four stats (health, hunger, fatigue, happiness) in the green zone, and Bob will live a full life of 100 game-hours.
 

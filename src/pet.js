@@ -29,6 +29,14 @@ export function createPet() {
     },
     alive: true,
     causeOfDeath: null,
+    // --- Economy (added in v2) ---
+    coins: 0,
+    // Fractional coins earned in the active minigame session, flushed to
+    // `coins` on close. Math.floor here means we only credit a whole coin
+    // when the threshold (default 50 flies) is actually reached.
+    coinsFraction: 0,
+    inventory: [],          // [{ id, type: 'toy'|'cosmetic'|'food', name, emoji, price, obtainedAt, consumed? }]
+    equipped: { cosmetic: null }, // currently worn cosmetic item id (string|null)
   };
 }
 
@@ -49,6 +57,11 @@ function randInt(min, max) {
 // because the health bar is now bound to remaining life = MAX_AGE - age.)
 const CRIT = 70;
 
+// Equipped cosmetic gives a tiny passive happiness bonus: +1 happiness
+// per 1 game-hour (= every 1 / TICK_SPEED real seconds = 2.4s).
+// Small enough that wearing the tiara ≠ immortality, noticeable over a run.
+const EQUIPPED_HAPPINESS_PER_HOUR = 1;
+
 export function tick(pet, deltaSec) {
   if (!pet.alive) return pet;
 
@@ -56,6 +69,16 @@ export function tick(pet, deltaSec) {
   pet.stats.fatigue   = clamp(pet.stats.fatigue   + DECAY.fatigue   * deltaSec, 0, 100);
   pet.stats.happiness = clamp(pet.stats.happiness - DECAY.happiness * deltaSec, 0, 100);
   pet.age             = pet.age + DECAY.age * deltaSec;
+
+  // Cosmetic passive bonus (decoupled from gameplay so it doesn't break
+  // the existing stat balance: 1h ≈ +1 happiness, max run is 100h).
+  if (pet.equipped && pet.equipped.cosmetic) {
+    pet.stats.happiness = clamp(
+      pet.stats.happiness + EQUIPPED_HAPPINESS_PER_HOUR * (DECAY.age * deltaSec),
+      0,
+      100
+    );
+  }
 
   // Death checks
   if (pet.age >= MAX_AGE) {
