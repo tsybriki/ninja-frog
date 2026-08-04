@@ -51,7 +51,7 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 60%, var(--bg-light) 100%);
   min-height: 100vh;
   color: var(--text);
@@ -119,8 +119,9 @@ h1 {
   font-size: 80px;
   line-height: 1;
   transition: transform 0.2s;
-  position: relative;
   display: inline-block;
+  position: relative;
+  min-height: 180px;
 }
 /* Emoji sprite (default). If you ever want to swap in a real photo/PDF,
    replace the markup in index.html with an <img class="bob-image"> and the
@@ -130,11 +131,17 @@ h1 {
   display: inline-block;
 }
 .bob-image {
-  width: 160px;
-  height: 160px;
+  /* PNG sprite (transparent silhouette). Width-driven, keeps aspect ratio
+     (256x554 portrait). CSS adjusts for narrow screens via max-width. */
+  width: auto;
+  height: 180px;
+  max-width: 100%;
   display: block;
-  pointer-events: none;
+  margin: 0 auto;
   user-select: none;
+  pointer-events: none;
+  /* No background: alpha-channel transparent pixels stay transparent */
+  background: transparent;
 }
 
 .bob-sprite.happy { animation: wiggle 1s ease-in-out infinite; }
@@ -610,7 +617,7 @@ button:disabled {
 
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 10px;
 }
 .shop-card-item,
@@ -648,7 +655,7 @@ button:disabled {
 .shop-card-item .buy-btn,
 .inv-card .act-btn {
   width: 100%;
-  padding: 8px;
+  padding: 8px 6px;
   font-size: 13px;
   font-weight: 600;
   border: none;
@@ -657,6 +664,14 @@ button:disabled {
   color: white;
   background: var(--good);
   transition: background 0.15s, transform 0.1s;
+  /* Prevent text-clipping that turns "Купить" into "ЦЫ" on narrow cards */
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  /* Belt-and-suspenders font stack: webfont → system font with Cyrillic glyphs */
+  font-family: 'Noto Sans', 'Segoe UI', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 .shop-card-item .buy-btn:hover,
 .inv-card .act-btn:hover { background: #2f9e44; }
