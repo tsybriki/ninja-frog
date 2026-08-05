@@ -1,14 +1,16 @@
-// src/minigame-racing.js — Гонки от первого лица (FPV / cockpit view).
+// src/minigame-racing.js — Гонки от первого лица (FPV / cockpit view), mobile-first.
 //
 // Игрок сидит за рулём: внизу экрана — капот и приборная панель, впереди
 // уходит в перспективу дорога с разметкой. Навстречу едут машины в трёх
 // полосах. Уворачиваемся, едем как можно дальше, получаем монеты за метры.
 //
-// Контролы
-//   ←/→ или A/D — рулёжка влево/вправо
-//   W или Space — газ (чем дольше держишь, тем быстрее разгон)
-//   S           — тормоз
-//   R           — рестарт после Game Over
+// Контролы (mobile-first)
+//   Тач: левая половина экрана — кнопки руления (◀ ▶)
+//        правая половина — педаль газа (большая) и тормоз (над газом)
+//        свайп по дороге — то же руление (если привычнее)
+//   Клавиатура (десктоп): ←/→ или A/D — рулёжка
+//                         W/Space — газ, S — тормоз
+//                         R — рестарт
 //
 // Почему FPV, а не top-down: запрос «мы сидим в машине от первого лица» —
 // намеренно отличаемся от старой top-down race, чтобы в меню было два
@@ -108,10 +110,41 @@ export function createRacingGame() {
   `;
   container.appendChild(hud);
 
+  // Контейнер должен блокировать тач-скролл/зум браузера, иначе при рулении
+  // пальцем страница будет скроллиться или зумиться — играть невозможно.
+  container.style.touchAction = 'none';
+  // На iOS без user-scalable=no мета-тега pinch-zoom всё равно сработает
+  // двумя пальцами, но одиночный палец больше не уведёт страницу.
+
+  // --- Экранные кнопки (mobile-first). Структура:
+  //   .racing-controls
+  //     .racing-controls-left    [◀] [▶]
+  //     .racing-controls-right   [тормоз]
+  //                             [газ   ]
+  //
+  // Кнопки полупрозрачные, большие, не мешают обзору. На десктопе тоже видны —
+  // если открыли игру в браузере, можно тыкать мышкой. Клавиатура остаётся
+  // для тех, кто привык.
+  const controls = document.createElement('div');
+  controls.className = 'racing-controls';
+  controls.innerHTML = `
+    <div class="racing-controls-left">
+      <button class="racing-btn racing-btn-steer racing-btn-left"  type="button" aria-label="Влево">◀</button>
+      <button class="racing-btn racing-btn-steer racing-btn-right" type="button" aria-label="Вправо">▶</button>
+    </div>
+    <div class="racing-controls-right">
+      <button class="racing-btn racing-btn-brake" type="button" aria-label="Тормоз">🛑</button>
+      <button class="racing-btn racing-btn-gas"   type="button" aria-label="Газ">GAS</button>
+    </div>
+  `;
+  // Кнопки лежат ВНУТРИ контейнера, но выше по z-index, чтобы дорога/машины
+  // рисовались под ними. На тач-устройствах CSS pointer-events на них включит.
+  container.appendChild(controls);
+
   // Подсказка управления
   const hint = document.createElement('div');
   hint.className = 'minigame-hint racing-hint';
-  hint.textContent = '←/→ руль · W газ · S тормоз · R рестарт';
+  hint.textContent = '◀ ▶ руль · GAS газ · 🛑 тормоз';
   container.appendChild(hint);
 
   // Game over
@@ -330,11 +363,77 @@ export function createRacingGame() {
     raf = requestAnimationFrame(step);
   };
 
-  // --- Клавиатура ----------------------------------------------------------
+  // --- Ввод: тач-кнопки + клавиатура (десктоп-фолбэк) + свайп по дороге ----
+  //
+  // Логика одинаковая: нажал «газ» → keys.has('gas') = true; отпустил → false.
+  // Кнопки и клавиатура дёргают одни и те же сеттеры, чтобы не было дублей.
 
   const keys = new Set();
+  const setGas    = (on) => { if (on) keys.add('gas'); else keys.delete('gas'); };
+  const setBrake  = (on) => { braking = !!on; };
+  const setSteer  = (dir) => { steerTarget = dir; }; // -1 | 0 | +1
+
+  // 1) Тач-кнопки. Используем pointerdown/pointerup — единое API для мыши
+  //    и тача, без необходимости тач-флагов. setPointerCapture() нужен,
+  //    чтобы палец, скользнувший за пределы кнопки, всё равно отпускал газ.
+  const wireButton = (el, onDown, onUp) => {
+    const down = (e) => { e.preventDefault(); try { el.setPointerCapture(e.pointerId); } catch {} onDown(e); };
+    const up   = (e) => { e.preventDefault(); try { el.releasePointerCapture(e.pointerId); } catch {} onUp(e); };
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    el.addEventListener('pointerleave', (e) => { if (e.buttons === 0) up(e); });
+  };
+
+  wireButton(controls.querySelector('.racing-btn-gas'),  () => setGas(true),  () => setGas(false));
+  wireButton(controls.querySelector('.racing-btn-brake'),() => setBrake(true),() => setBrake(false));
+  wireButton(controls.querySelector('.racing-btn-left'), () => setSteer(-1),  () => { if (steerTarget === -1) setSteer(0); });
+  wireButton(controls.querySelector('.racing-btn-right'),() => setSteer(+1),  () => { if (steerTarget === +1) setSteer(0); });
+
+  // 2) Свайп по дороге — рулёжка по горизонтальному смещению пальца.
+  //    Жмёшь в любом месте дороги/неба → руль в ту сторону, в которую ведёшь.
+  //    Отпустил → руль в центр.
+  let swipeActive = false;
+  const roadForSwipe = road;
+  const onSwipeDown = (e) => {
+    if (!running) return;
+    // Не перехватываем тапы по кнопкам — у них своя обработка
+    if (e.target.closest('.racing-btn')) return;
+    e.preventDefault();
+    swipeActive = true;
+    try { roadForSwipe.setPointerCapture(e.pointerId); } catch {}
+    updateSwipeSteer(e);
+  };
+  const onSwipeMove = (e) => {
+    if (!swipeActive) return;
+    e.preventDefault();
+    updateSwipeSteer(e);
+  };
+  const onSwipeUp = (e) => {
+    if (!swipeActive) return;
+    swipeActive = false;
+    setSteer(0);
+    try { roadForSwipe.releasePointerCapture(e.pointerId); } catch {}
+  };
+  const updateSwipeSteer = (e) => {
+    const rect = roadForSwipe.getBoundingClientRect();
+    const dx = e.clientX - (rect.left + rect.width / 2);
+    const half = rect.width / 2;
+    // Нормализуем: -1..+1, потом «прижимаем» к краям, чтобы мелкие
+    // движения не считались за руление.
+    const norm = Math.max(-1, Math.min(1, dx / half));
+    if (norm < -0.25) setSteer(-1);
+    else if (norm > 0.25) setSteer(+1);
+    else setSteer(0);
+  };
+  roadForSwipe.addEventListener('pointerdown', onSwipeDown);
+  roadForSwipe.addEventListener('pointermove', onSwipeMove);
+  roadForSwipe.addEventListener('pointerup', onSwipeUp);
+  roadForSwipe.addEventListener('pointercancel', onSwipeUp);
+
+  // 3) Клавиатура (десктоп-фолбэк). Слушатели на window — единый паттерн
+  //    с другими мини-играми.
   const onKeyDown = (e) => {
-    // R — рестарт даже после game over
     if (e.code === 'KeyR') {
       if (crashed || !running) {
         e.preventDefault();
@@ -344,17 +443,17 @@ export function createRacingGame() {
     }
     if (!running) return;
     const k = e.key.toLowerCase();
-    if (k === 'arrowleft'  || k === 'a') { steerTarget = -1; e.preventDefault(); }
-    if (k === 'arrowright' || k === 'd') { steerTarget = +1; e.preventDefault(); }
-    if (k === 'w' || k === ' ' || k === 'arrowup')   { keys.add('gas'); e.preventDefault(); }
-    if (k === 's' || k === 'arrowdown') { braking = true; e.preventDefault(); }
+    if (k === 'arrowleft'  || k === 'a') { setSteer(-1); e.preventDefault(); }
+    if (k === 'arrowright' || k === 'd') { setSteer(+1); e.preventDefault(); }
+    if (k === 'w' || k === ' ' || k === 'arrowup')   { setGas(true);   e.preventDefault(); }
+    if (k === 's' || k === 'arrowdown') { setBrake(true); e.preventDefault(); }
   };
   const onKeyUp = (e) => {
     const k = e.key.toLowerCase();
-    if (k === 'w' || k === ' ' || k === 'arrowup') keys.delete('gas');
-    if (k === 's' || k === 'arrowdown') braking = false;
-    if ((k === 'arrowleft' || k === 'a') && steerTarget === -1) steerTarget = 0;
-    if ((k === 'arrowright' || k === 'd') && steerTarget === +1) steerTarget = 0;
+    if (k === 'w' || k === ' ' || k === 'arrowup') setGas(false);
+    if (k === 's' || k === 'arrowdown') setBrake(false);
+    if ((k === 'arrowleft' || k === 'a') && steerTarget === -1) setSteer(0);
+    if ((k === 'arrowright' || k === 'd') && steerTarget === +1) setSteer(0);
   };
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
@@ -382,7 +481,9 @@ export function createRacingGame() {
       oncoming.forEach((c) => c.el.remove());
       oncoming.length = 0;
     },
-    // Очистка клавиатурных слушателей, если когда-нибудь понадобится выгрузить
+    // Очистка слушателей, если когда-нибудь понадобится выгрузить.
+    // На тач-кнопках и свайпе слушатели на элементах контейнера —
+    // они умрут вместе с контейнером, но клавиатура на window — глобальная.
     destroy: () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);

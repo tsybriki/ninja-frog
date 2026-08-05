@@ -1167,3 +1167,108 @@ button:disabled {
   color: #ffd84d;
 }
 
+/* ============================================================
+   Mobile-first: экранные кнопки управления
+   Левая половина — руление (◀ ▶), правая — тормоз + газ.
+   Кнопки полупрозрачные, чтобы не закрывать дорогу; но достаточно
+   крупные, чтобы в них попадать пальцем (~56-72 px).
+   ============================================================ */
+
+.racing-controls {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 14px 18px 14px;
+  z-index: 5;
+  pointer-events: none;   /* контейнер не перехватывает — только кнопки */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.racing-controls-left,
+.racing-controls-right {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.racing-controls-right {
+  flex-direction: column;
+}
+
+.racing-btn {
+  pointer-events: auto;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  background: rgba(20, 20, 28, 0.55);
+  color: #fff;
+  font-weight: 800;
+  font-size: 28px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;          /* блокируем scroll/zoom внутри кнопки */
+  transition: transform 60ms ease, background-color 80ms ease;
+  font-family: inherit;
+  /* Нажимается — кнопка визуально «утапливается» */
+}
+.racing-btn:active,
+.racing-btn.is-pressed {
+  transform: scale(0.94);
+  background: rgba(255, 216, 77, 0.85);  /* подсветка газом */
+  color: #15151b;
+  border-color: rgba(255, 216, 77, 0.9);
+}
+
+/* Кнопки руления — круглые */
+.racing-btn-steer {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 30px;
+}
+.racing-btn-steer:active,
+.racing-btn-steer.is-pressed {
+  background: rgba(120, 180, 255, 0.85);
+  border-color: rgba(120, 180, 255, 0.9);
+}
+
+/* Газ — самая большая кнопка, справа внизу */
+.racing-btn-gas {
+  width: 96px;
+  height: 72px;
+  border-radius: 18px;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+/* Тормоз — поменьше, над газом */
+.racing-btn-brake {
+  width: 72px;
+  height: 56px;
+  border-radius: 14px;
+  font-size: 22px;
+}
+
+/* На узких телефонах сжимаем всё пропорционально */
+@media (max-width: 380px) {
+  .racing-btn-steer { width: 54px; height: 54px; font-size: 24px; }
+  .racing-btn-gas   { width: 80px; height: 64px; font-size: 16px; }
+  .racing-btn-brake { width: 60px; height: 48px; font-size: 18px; }
+  .racing-controls  { padding: 0 10px 14px 10px; gap: 8px; }
+  .racing-controls-left,
+  .racing-controls-right { gap: 8px; }
+}
+
+/* Когда game over активен — кнопки управления визуально гаснут,
+   чтобы не отвлекать от экрана проигрыша */
+.racing-gameover:not(.hidden) ~ .racing-controls {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
