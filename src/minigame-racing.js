@@ -116,7 +116,59 @@ export function createRacingGame() {
   // На iOS без user-scalable=no мета-тега pinch-zoom всё равно сработает
   // двумя пальцами, но одиночный палец больше не уведёт страницу.
 
-  // --- Экранные кнопки (mobile-first). Структура:
+  // Оверлей «поверни телефон». Виден только в portrait-ориентации.
+  // Внутри — кнопка «Развернуть на весь экран», которая:
+  //   1) вызывает requestFullscreen() (если возможно),
+  //   2) пытается screen.orientation.lock('landscape') (Android/Chrome),
+  //   3) перезагружает layout.
+  //
+  // iOS Safari не поддерживает screen.orientation.lock, поэтому там
+  // работает только ручной поворот. Кнопка всё равно полезна — она
+  // прячет browser chrome через fullscreen.
+  const rotatePrompt = document.createElement('div');
+  rotatePrompt.className = 'racing-rotate-prompt hidden';
+  rotatePrompt.innerHTML = `
+    <div class="racing-rotate-prompt-inner">
+      <div class="racing-rotate-icon">📱↻</div>
+      <div class="racing-rotate-text">Поверни телефон на бок</div>
+      <button class="racing-rotate-btn" type="button">Развернуть на весь экран</button>
+    </div>
+  `;
+  container.appendChild(rotatePrompt);
+
+  rotatePrompt.querySelector('.racing-rotate-btn').addEventListener('click', async () => {
+    // 1) Fullscreen — уберёт browser chrome (адресная строка, табы).
+    try {
+      const root = document.documentElement;
+      if (root.requestFullscreen) await root.requestFullscreen();
+      else if (root.webkitRequestFullscreen) root.webkitRequestFullscreen(); // iOS Safari
+    } catch (e) { /* no-op */ }
+    // 2) Принудительный landscape (Android Chrome). На iOS бросит.
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock('landscape');
+      }
+    } catch (e) { /* iOS не умеет — игрок просто повернёт телефон руками */ }
+    // 3) Переоцениваем ориентацию (она могла поменяться).
+    updateOrientation();
+  });
+
+  // Следим за поворотом — даже если игрок не нажал кнопку, а просто
+  // повернул телефон руками. updateOrientation() выставляет/снимает
+  // класс .is-landscape на контейнере; CSS показывает/прячет warning.
+  const updateOrientation = () => {
+    const landscape = window.innerWidth >= window.innerHeight;
+    container.classList.toggle('is-landscape', landscape);
+    container.classList.toggle('is-portrait', !landscape);
+    rotatePrompt.classList.toggle('hidden', landscape);
+    // Когда landscape — пробуем зайти в fullscreen автоматически, но без
+    // ошибок, если запрещено (iOS Safari требует пользовательский жест).
+  };
+  window.addEventListener('orientationchange', updateOrientation);
+  window.addEventListener('resize', updateOrientation);
+  updateOrientation();
+
+  // Экранные кнопки (mobile-first). Структура:
   //   .racing-controls
   //     .racing-controls-left    [◀] [▶]
   //     .racing-controls-right   [тормоз]

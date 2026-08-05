@@ -2,7 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Mobile-first viewport:
+       - viewport-fit=cover     — контент идёт ПОД вырезы iPhone (notch / Dynamic Island)
+                                  и под browser chrome при fullscreen
+       - maximum-scale=1        — запрет зума при двойном тапе (для тач-игр критично)
+       - user-scalable=no       — иначе iOS игнорирует maximum-scale -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#15151b" />
   <title>Bob the Shrimp 🦐</title>
   <!-- Web font with full cyrillic + emoji coverage. Without this, some
        browsers fall back to whatever decorative font the OS ships (e.g.
