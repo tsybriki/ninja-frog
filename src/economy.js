@@ -52,9 +52,11 @@ export function findItem(id) {
 // Activity -> coins.
 //   flies  = flies caught
 //   shots  = shots landed (hits in the targets minigame)
+//   meters = distance travelled in the FPV racing minigame (1 coin per 500m)
 export const RATES = {
-  flies: { perCoin: 25, coinsPerUnit: 1 / 25 }, // 1 coin per 25 flies
-  shots: { perCoin: 15, coinsPerUnit: 2 / 15 }, // 2 coins per 15 shots landed
+  flies:  { perCoin: 25,  coinsPerUnit: 1 / 25  }, // 1 coin per 25 flies
+  shots:  { perCoin: 15,  coinsPerUnit: 2 / 15  }, // 2 coins per 15 shots landed
+  meters: { perCoin: 500, coinsPerUnit: 1 / 500 }, // 1 coin per 500 m travelled
 };
 
 // Hard cap on coins earned in a single minigame session. Once pet.coinsFraction
@@ -82,6 +84,19 @@ export function addShots(pet, count) {
     return { coinsEarned: 0, coinsTotal: pet.coins };
   }
   pet.coinsFraction += count * RATES.shots.coinsPerUnit;
+  return { coinsEarned: 0, coinsTotal: pet.coins };
+}
+
+// Increment from "metres travelled" source. Used by the FPV racing minigame.
+// `meters` is a real number — the game will tick this every frame with
+// the per-frame distance, not just on whole-metre crossings, so the
+// fractional counter advances smoothly and rounds fairly at flush time.
+export function addMeters(pet, meters) {
+  if (!pet || !pet.alive) return { coinsEarned: 0, coinsTotal: pet ? pet.coins : 0 };
+  if (!Number.isFinite(meters) || meters <= 0) {
+    return { coinsEarned: 0, coinsTotal: pet.coins };
+  }
+  pet.coinsFraction += meters * RATES.meters.coinsPerUnit;
   return { coinsEarned: 0, coinsTotal: pet.coins };
 }
 
