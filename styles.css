@@ -717,3 +717,453 @@ button:disabled {
 .bob-cosmetics > .slot-hat  { top: -4px;  left: 50%; transform: translateX(-50%); }
 .bob-cosmetics > .slot-side { top: 30%;   right: -2px; }
 
+/* --- Racing minigame --- */
+
+.race-road {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    /* sky */
+    linear-gradient(to bottom,
+      #1a2a4a 0%,
+      #36567d 35%,
+      #b87a4d 60%,
+      #d4a36a 75%,
+      /* road */
+      #3a3a3a 76%,
+      #2a2a2a 100%);
+}
+
+/* The dashed centre line that scrolls toward the camera.
+   The scroll speed is driven by --scroll-px-per-sec, set from JS. */
+.race-road::before {
+  content: '';
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 70%;
+  background-image: linear-gradient(to bottom,
+    rgba(255, 235, 130, 0.95) 0%,
+    rgba(255, 235, 130, 0.95) 50%,
+    transparent 50%,
+    transparent 100%);
+  background-size: 100% 60px;
+  background-repeat: repeat-y;
+  animation: race-stripes linear infinite;
+  animation-duration: calc(1s / (var(--scroll-px-per-sec, 200) / 60));
+  pointer-events: none;
+}
+
+@keyframes race-stripes {
+  from { background-position-y: 0; }
+  to   { background-position-y: 60px; }
+}
+
+.race-obstacles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.race-barrel {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 56px;
+  line-height: 1;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.5));
+  will-change: left, top, font-size, opacity;
+}
+
+/* Bottom dashboard panel — like a windscreen dashboard view. */
+.race-dash {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 32%;
+  background: linear-gradient(to top,
+    rgba(20, 18, 14, 0.95) 0%,
+    rgba(40, 32, 24, 0.88) 60%,
+    rgba(60, 48, 36, 0.0)  100%);
+  pointer-events: none;
+}
+
+.race-wheel {
+  position: absolute;
+  bottom: 6%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 60px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+  transition: transform 0.08s ease-out;
+}
+
+.race-speedo {
+  position: absolute;
+  bottom: 6%;
+  left: 6%;
+  color: #ffd84d;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
+  font-family: 'Courier New', monospace;
+  text-align: left;
+}
+.race-speedo-num {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
+}
+.race-speedo-unit {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.race-tacho {
+  position: absolute;
+  bottom: 6%;
+  right: 6%;
+  width: 38%;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+}
+.race-tacho-label {
+  font-size: 11px;
+  opacity: 0.7;
+  letter-spacing: 1px;
+  margin-bottom: 3px;
+}
+.race-tacho-track {
+  position: relative;
+  width: 100%;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.race-tacho-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 0%;
+  background: linear-gradient(to right, #4ade80, #facc15);
+  transition: width 0.08s linear, background 0.15s;
+  border-radius: 7px;
+}
+.race-tacho-fill.red {
+  background: linear-gradient(to right, #f87171, #ef4444);
+}
+.race-tacho-red {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 15%;
+  background: rgba(239, 68, 68, 0.25);
+  border-left: 1px solid rgba(239, 68, 68, 0.7);
+  pointer-events: none;
+}
+.race-tacho-gear {
+  position: absolute;
+  top: -8px;
+  right: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffd84d;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+}
+
+.race-gear-indicator {
+  position: absolute;
+  bottom: 38%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 56px;
+  font-weight: 800;
+  color: rgba(255, 216, 77, 0.85);
+  text-shadow: 0 0 14px rgba(0, 0, 0, 0.7);
+  font-family: 'Courier New', monospace;
+}
+
+.race-hud {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 6;
+  pointer-events: none;
+}
+.race-hud > div {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.race-hud-distance { color: #bbf7d0; }
+.race-hud-coins   { color: #fde68a; }
+
+.race-hint {
+  /* override .minigame-hint default position; place just above the dash */
+  bottom: 34%;
+}
+
+.race-gameover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 10;
+  color: #fff;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+}
+.race-gameover.hidden { display: none; }
+.race-gameover-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #fca5a5;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+.race-gameover-stats {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.race-gameover-stats strong {
+  color: #ffd84d;
+}
+
+/* ============================================================
+   Гонка от первого лица (minigame-racing.js)
+   Вид из кабины: небо, дорога в перспективе, капот снизу,
+   встречные машины едут нам навстречу.
+   ============================================================ */
+
+.racing-world {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #87a7c9;          /* на случай если небо не успело отрисоваться */
+  user-select: none;
+}
+
+.racing-sky {
+  position: absolute;
+  inset: 0 0 60% 0;
+  background:
+    linear-gradient(180deg, #4a6c8f 0%, #87a7c9 55%, #cfe0ec 100%);
+}
+
+.racing-hills {
+  position: absolute;
+  left: 0; right: 0;
+  top: 28%;
+  height: 8%;
+  background:
+    radial-gradient(ellipse at 15% 100%, #5b7a52 0 25%, transparent 26%),
+    radial-gradient(ellipse at 45% 100%, #4a6b46 0 30%, transparent 31%),
+    radial-gradient(ellipse at 75% 100%, #607a55 0 27%, transparent 28%),
+    radial-gradient(ellipse at 92% 100%, #526c4a 0 22%, transparent 23%);
+  filter: blur(1px);
+  opacity: 0.85;
+}
+
+.racing-road {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 100%;
+  height: 75%;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(180deg, transparent 0%, transparent 30%, #2c2c34 31%, #1f1f26 100%);
+  perspective: 600px;
+  perspective-origin: 50% 30%;
+  overflow: hidden;
+}
+
+/* Разметка дороги — две сплошные обочины и сдвигающиеся пунктиры полос */
+.racing-road::before,
+.racing-road::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  width: 8px;
+  height: 70%;
+  transform-origin: 50% 0;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95) 0 16px,
+    transparent 16px 32px
+  );
+  animation: racing-stripes linear infinite;
+  animation-duration: calc(1s / var(--road-speed, 100));
+}
+
+.racing-road::before {
+  transform: translateX(calc(-50% - 22vw)) scaleX(1);
+  width: 6px;
+  opacity: 0.95;
+}
+
+.racing-road::after {
+  transform: translateX(calc(-50% + 22vw)) scaleX(1);
+  width: 6px;
+  opacity: 0.95;
+}
+
+@keyframes racing-stripes {
+  0%   { background-position-y: 0; }
+  100% { background-position-y: 64px; }
+}
+
+/* Центральная разметка между полосами — рисуем отдельным слоем */
+.racing-road {
+  /* дублирующий селектор — оставлено для совместимости с будущими вариациями */
+}
+
+.racing-traffic {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.racing-car-oncoming {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  line-height: 1;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+  transition: none;
+  will-change: transform, left, top, font-size;
+}
+
+/* Капот + торпедо — имитация вида из машины */
+.racing-dash {
+  --steer: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 32%;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(20, 20, 28, 0.0) 25%, rgba(20, 20, 28, 0.85) 65%, #15151b 100%);
+  pointer-events: none;
+  transform: translateX(calc(var(--steer) * -1.5%));
+  transition: transform 80ms linear;
+}
+
+/* Сам капот — тёмный силуэт внизу */
+.racing-dash::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 130%;
+  height: 55%;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(ellipse at 50% 100%, #1a1a22 0 60%, #0d0d12 70%, transparent 75%);
+  border-top-left-radius: 50% 70%;
+  border-top-right-radius: 50% 70%;
+}
+
+/* Спидометр по центру торпедо */
+.racing-speedo {
+  position: absolute;
+  left: 50%;
+  bottom: 6%;
+  transform: translateX(-50%);
+  font-size: 56px;
+  font-weight: 800;
+  color: #ffd84d;
+  text-shadow:
+    0 0 12px rgba(255, 200, 60, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.6);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -2px;
+}
+
+.racing-speedo-label {
+  position: absolute;
+  left: 50%;
+  bottom: 2.5%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.racing-hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 2;
+}
+.racing-hud > div {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.racing-hud-distance { color: #bbf7d0; }
+.racing-hud-coins   { color: #fde68a; }
+
+.racing-hint {
+  /* поднять подсказку повыше, чтобы не упиралась в капот */
+  bottom: 36%;
+}
+
+.racing-flash {
+  animation: racing-crash 0.35s ease-out;
+}
+@keyframes racing-crash {
+  0%   { background-color: rgba(255, 80, 80, 0.0); }
+  20%  { background-color: rgba(255, 80, 80, 0.55); }
+  100% { background-color: rgba(255, 80, 80, 0.0); }
+}
+
+.racing-gameover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 10;
+  color: #fff;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+}
+.racing-gameover.hidden { display: none; }
+.racing-gameover-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #fca5a5;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+.racing-gameover-stats {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.racing-gameover-stats strong {
+  color: #ffd84d;
+}
+
