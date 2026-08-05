@@ -155,7 +155,9 @@ export function createRacingGame() {
     dash.style.setProperty('--steer', steer.toFixed(2));
   };
 
-  // Спидометр — крупный шар прямо на торпедо
+  // Спидометр — крупный шар прямо на торпедо.
+  // ВАЖНО: объявляем ДО updateDash, потому что updateDash вызывается из
+  // step() в первом же кадре после start(). Иначе TDZ ReferenceError.
   const speedo = document.createElement('div');
   speedo.className = 'racing-speedo';
   speedo.textContent = '0';

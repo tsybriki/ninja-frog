@@ -6,7 +6,6 @@ import { savePet, loadPet, clearPet } from './storage.js';
 import { openMinigame } from './minigames.js';
 import { createFliesGame } from './minigame-flies.js';
 import { createTargetsGame } from './minigame-targets.js';
-import { createRaceGame } from './minigame-race.js';
 import { createRacingGame } from './minigame-racing.js';
 import { flushCoins, pendingCoins, wouldEarnOnClose, SESSION_COIN_CAP } from './economy.js';
 import { openShop, closeShop, bindShop } from './shop.js';
@@ -90,26 +89,6 @@ const GAME_REGISTRY = {
         ? `🪙 +${earned} (15 попаданий = 2 монеты). Баланс: ${total}.`
         : `Пока 0 монет (нужно 15 попаданий = 2 🪙).`;
       alert(`🎯 Попаданий: ${hits}${reasonLine}\n${coinLine}`);
-    },
-  },
-  race: {
-    title: '🏎️ Гонки',
-    factory: () => createRaceGame(null, null),
-    onFinish: (pet, stats) => {
-      const earned = flushCoins(pet);
-      savePet(pet);
-      render(pet);
-      const total  = pet.coins || 0;
-      const meters = (stats && stats.distanceM) || 0;
-      const top    = (stats && stats.topSpeed)  || 0;
-      let reasonLine = '';
-      if (stats && stats.reason === 'crash')    reasonLine = '\n💥 Врезался в бочку.';
-      else if (stats && stats.reason === 'overheat') reasonLine = '\n🔥 Двигатель перегрелся.';
-      else if (stats && stats.reason === 'cap')  reasonLine = '\n🏁 Лимит 100 монет за сессию достигнут.';
-      const coinLine = earned > 0
-        ? `🪙 +${earned} (500 м = 1 монета). Баланс: ${total}.`
-        : `Пока 0 монет (нужно проехать 500 м = 1 🪙).`;
-      alert(`🏎️ Гонка завершена\n📏 ${Math.floor(meters)} м · 🚀 макс. ${Math.round(top)} км/ч${reasonLine}\n${coinLine}`);
     },
   },
   // Гонка от первого лица — отдельная игра, чтобы в меню было разнообразие.
